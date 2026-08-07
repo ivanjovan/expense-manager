@@ -96,6 +96,92 @@
     "emptyTitle": "Još uvek nema podataka",
     "emptyBody": "Dodajte prvo vozilo ili račun za režije da biste ovde videli statistiku.",
     "addVehicleCta": "Dodaj vozilo",
-    "addBillCta": "Dodaj račun za režije"
+    "addBillCta": "Dodaj račun za režije",
+    "vehiclesTitle": "Vozila"
+  },
+  "common": {
+    "cancel": "Otkaži",
+    "back": "Nazad",
+    "save": "Sačuvaj",
+    "loading": "Učitavanje…"
+  },
+  "fuel": {
+    "vehicles": {
+      "title": "Vozila",
+      "addButton": "Dodaj vozilo",
+      "addTitle": "Dodaj vozilo",
+      "editTitle": "Izmeni vozilo",
+      "name": "Naziv",
+      "manufacturer": "Proizvođač",
+      "model": "Model",
+      "fuelType": "Tip goriva",
+      "licensePlate": "Registarska oznaka",
+      "initialOdometer": "Početno stanje kilometraže (km)",
+      "notes": "Napomene",
+      "submit": "Sačuvaj vozilo",
+      "archiveButton": "Arhiviraj",
+      "unarchiveButton": "Vrati iz arhive",
+      "deleteButton": "Obriši",
+      "confirmDelete": "Obrisati {name}? Ovo se ne može poništiti.",
+      "deleteBlocked": "Ovo vozilo ima unose goriva i ne može se obrisati — arhivirajte ga umesto toga.",
+      "archived": "Arhivirano",
+      "emptyTitle": "Još uvek nema vozila",
+      "emptyBody": "Dodajte prvo vozilo da biste počeli da pratite gorivo.",
+      "showArchived": "Prikaži arhivirana",
+      "fuelTypes": {
+        "PETROL": "Benzin",
+        "DIESEL": "Dizel",
+        "LPG": "TNG",
+        "CNG": "CNG",
+        "ELECTRIC": "Električno",
+        "HYBRID": "Hibridno"
+      }
+    },
+    "entry": {
+      "title": "Unosi goriva",
+      "addButton": "Dodaj unos goriva",
+      "addTitle": "Dodaj unos goriva",
+      "editTitle": "Izmeni unos goriva",
+      "date": "Datum",
+      "odometer": "Kilometraža (km)",
+      "fuelPrice": "Cena po litru",
+      "liters": "Litara",
+      "totalPaid": "Ukupno plaćeno",
+      "isFullTank": "Pun rezervoar",
+      "missedEntries": "Nedostaju unosi od poslednjeg sipanja",
+      "station": "Pumpa",
+      "notes": "Napomene",
+      "submit": "Sačuvaj unos",
+      "editButton": "Izmeni",
+      "deleteButton": "Obriši",
+      "confirmDelete": "Obrisati ovaj unos goriva? Ovo se ne može poništiti.",
+      "valueDiscrepancyWarning": "Cena × litri se ne poklapa sasvim sa ukupnim iznosom — ipak je sačuvano.",
+      "emptyTitle": "Još uvek nema unosa goriva",
+      "emptyBody": "Dodajte prvi unos nakon sipanja goriva.",
+      "derivedHint": "Izračunato na osnovu druga dva polja",
+      "chooseDerivedHint": "Izaberite koje polje da se automatski izračunava",
+      "noneOption": "Ništa — unesi sve ručno",
+      "filterPlaceholder": "Filtriraj po pumpi ili napomeni",
+      "addedBy": "Dodao/la {name}"
+    },
+    "stats": {
+      "totalSpent": "Ukupno potrošeno",
+      "totalLiters": "Ukupno litara",
+      "averageFuelPrice": "Prosečna cena goriva",
+      "averageConsumption": "Prosečna potrošnja",
+      "costPerKm": "Trošak po km",
+      "costPer100km": "Trošak na 100 km",
+      "totalDistance": "Ukupna pređena kilometraža",
+      "lastRefuel": "Poslednje sipanje",
+      "basedOnEntries": "Na osnovu {count} od {total} unosa",
+      "insufficientData": "Još uvek nema dovoljno sipanja punog rezervoara za izračunavanje potrošnje.",
+      "insufficientDataHint": "Za potrošnju su potrebna najmanje dva uzastopna sipanja punog rezervoara."
+    },
+    "charts": {
+      "priceHistory": "Istorija cene goriva",
+      "monthlySpending": "Mesečna potrošnja",
+      "monthlyLiters": "Mesečna litraža",
+      "consumptionTrend": "Trend potrošnje"
+    }
   }
 }

@@ -96,6 +96,92 @@
     "emptyTitle": "Nothing tracked yet",
     "emptyBody": "Add your first vehicle or utility bill to start seeing statistics here.",
     "addVehicleCta": "Add a vehicle",
-    "addBillCta": "Add a utility bill"
+    "addBillCta": "Add a utility bill",
+    "vehiclesTitle": "Vehicles"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "back": "Back",
+    "save": "Save",
+    "loading": "Loading…"
+  },
+  "fuel": {
+    "vehicles": {
+      "title": "Vehicles",
+      "addButton": "Add vehicle",
+      "addTitle": "Add vehicle",
+      "editTitle": "Edit vehicle",
+      "name": "Name",
+      "manufacturer": "Manufacturer",
+      "model": "Model",
+      "fuelType": "Fuel type",
+      "licensePlate": "License plate",
+      "initialOdometer": "Initial odometer (km)",
+      "notes": "Notes",
+      "submit": "Save vehicle",
+      "archiveButton": "Archive",
+      "unarchiveButton": "Unarchive",
+      "deleteButton": "Delete",
+      "confirmDelete": "Delete {name}? This can't be undone.",
+      "deleteBlocked": "This vehicle has fuel entries and can't be deleted — archive it instead.",
+      "archived": "Archived",
+      "emptyTitle": "No vehicles yet",
+      "emptyBody": "Add your first vehicle to start tracking fuel.",
+      "showArchived": "Show archived",
+      "fuelTypes": {
+        "PETROL": "Petrol",
+        "DIESEL": "Diesel",
+        "LPG": "LPG",
+        "CNG": "CNG",
+        "ELECTRIC": "Electric",
+        "HYBRID": "Hybrid"
+      }
+    },
+    "entry": {
+      "title": "Fuel entries",
+      "addButton": "Add fuel entry",
+      "addTitle": "Add fuel entry",
+      "editTitle": "Edit fuel entry",
+      "date": "Date",
+      "odometer": "Odometer (km)",
+      "fuelPrice": "Price per litre",
+      "liters": "Litres",
+      "totalPaid": "Total paid",
+      "isFullTank": "Full tank",
+      "missedEntries": "Missed entries since last fill-up",
+      "station": "Station",
+      "notes": "Notes",
+      "submit": "Save entry",
+      "editButton": "Edit",
+      "deleteButton": "Delete",
+      "confirmDelete": "Delete this fuel entry? This can't be undone.",
+      "valueDiscrepancyWarning": "Price × litres doesn't quite match the total — saved anyway.",
+      "emptyTitle": "No fuel entries yet",
+      "emptyBody": "Add your first entry after a fill-up.",
+      "derivedHint": "Computed from the other two fields",
+      "chooseDerivedHint": "Pick which field to compute automatically",
+      "noneOption": "None — enter all three manually",
+      "filterPlaceholder": "Filter by station or notes",
+      "addedBy": "Added by {name}"
+    },
+    "stats": {
+      "totalSpent": "Total spent",
+      "totalLiters": "Total litres",
+      "averageFuelPrice": "Average fuel price",
+      "averageConsumption": "Average consumption",
+      "costPerKm": "Cost per km",
+      "costPer100km": "Cost per 100 km",
+      "totalDistance": "Total distance",
+      "lastRefuel": "Last refuel",
+      "basedOnEntries": "Based on {count} of {total} entries",
+      "insufficientData": "Not enough full-tank fill-ups yet to calculate consumption.",
+      "insufficientDataHint": "Consumption needs at least two consecutive full-tank fill-ups."
+    },
+    "charts": {
+      "priceHistory": "Fuel price history",
+      "monthlySpending": "Monthly spending",
+      "monthlyLiters": "Monthly litres",
+      "consumptionTrend": "Consumption trend"
+    }
   }
 }
