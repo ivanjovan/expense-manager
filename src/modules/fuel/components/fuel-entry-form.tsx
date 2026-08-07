@@ -54,7 +54,7 @@ export function FuelEntryForm({ mode, vehicleId, entryId, defaultValues }: FuelE
   const fieldErrors = state && !state.ok ? state.fieldErrors : undefined;
 
   const [derivedField, setDerivedField] = React.useState<DerivedField>(
-    defaultValues?.derivedField ?? "TOTAL_PAID"
+    defaultValues?.derivedField ?? "LITERS"
   );
   const [fuelPrice, setFuelPrice] = React.useState(String(defaultValues?.fuelPrice ?? ""));
   const [liters, setLiters] = React.useState(String(defaultValues?.liters ?? ""));

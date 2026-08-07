@@ -97,7 +97,8 @@
     "emptyBody": "Dodajte prvo vozilo ili račun za režije da biste ovde videli statistiku.",
     "addVehicleCta": "Dodaj vozilo",
     "addBillCta": "Dodaj račun za režije",
-    "vehiclesTitle": "Vozila"
+    "vehiclesTitle": "Vozila",
+    "utilitiesTitle": "Režije"
   },
   "common": {
     "cancel": "Otkaži",
@@ -182,6 +183,89 @@
       "monthlySpending": "Mesečna potrošnja",
       "monthlyLiters": "Mesečna litraža",
       "consumptionTrend": "Trend potrošnje"
+    }
+  },
+  "utilities": {
+    "account": {
+      "title": "Režije",
+      "addButton": "Dodaj nalog",
+      "addTitle": "Dodaj nalog za režije",
+      "editTitle": "Izmeni nalog za režije",
+      "name": "Naziv",
+      "provider": "Dobavljač",
+      "accountNumber": "Broj naloga",
+      "meterNumber": "Broj brojila",
+      "submit": "Sačuvaj nalog",
+      "archiveButton": "Arhiviraj",
+      "unarchiveButton": "Vrati iz arhive",
+      "deleteButton": "Obriši",
+      "confirmDelete": "Obrisati {name}? Ovo se ne može poništiti.",
+      "deleteBlocked": "Ovaj nalog ima račune i ne može se obrisati — arhivirajte ga umesto toga.",
+      "archived": "Arhivirano",
+      "emptyTitle": "Još uvek nema naloga za režije",
+      "emptyBody": "Dodajte nalog za struju da biste počeli da pratite račune.",
+      "showArchived": "Prikaži arhivirana"
+    },
+    "bill": {
+      "title": "Računi",
+      "addButton": "Dodaj račun",
+      "addTitle": "Dodaj račun",
+      "editTitle": "Izmeni račun",
+      "periodFrom": "Period od",
+      "periodTo": "Period do",
+      "issueDate": "Datum izdavanja",
+      "dueDate": "Rok za plaćanje",
+      "amount": "Iznos",
+      "paymentDate": "Datum plaćanja",
+      "invoiceNumber": "Broj računa",
+      "notes": "Napomene",
+      "submit": "Sačuvaj račun",
+      "editButton": "Izmeni",
+      "deleteButton": "Obriši",
+      "confirmDelete": "Obrisati ovaj račun? Ovo se ne može poništiti.",
+      "emptyTitle": "Još uvek nema računa",
+      "emptyBody": "Dodajte prvi račun kada stigne.",
+      "periodOrderError": "Kraj perioda ne može biti pre početka perioda.",
+      "duplicatePeriodError": "Račun za ovaj tačan period već postoji za ovaj nalog.",
+      "readingBelowPreviousError": "Trenutno očitavanje je manje od prethodnog — proverite, ili označite da je brojilo vratilo na nulu.",
+      "readingsTitle": "Očitavanja brojila",
+      "highBand": "Viša tarifa",
+      "lowBand": "Niža tarifa",
+      "previousReading": "Prethodno očitavanje",
+      "currentReading": "Trenutno očitavanje",
+      "rollover": "Brojilo se vratilo na nulu",
+      "markPaid": "Označi kao plaćeno",
+      "markUnpaid": "Označi kao neplaćeno",
+      "addedBy": "Dodao/la {name}",
+      "filterPlaceholder": "Filtriraj po broju računa ili napomeni"
+    },
+    "status": {
+      "PAID": "Plaćeno",
+      "OVERDUE": "Zakasnelo",
+      "UNPAID": "Neplaćeno"
+    },
+    "stats": {
+      "totalPaid": "Ukupno plaćeno",
+      "totalUnpaid": "Ukupno neplaćeno",
+      "overdueCount": "Zakasneli računi",
+      "overdueValue": "Zakasneli iznos",
+      "averageMonthlyBill": "Prosečan račun",
+      "highestBill": "Najveći račun",
+      "lowestBill": "Najmanji račun",
+      "currentMonthTotal": "Ovaj mesec",
+      "currentYearTotal": "Ova godina",
+      "nextPaymentDue": "Sledeća uplata",
+      "noPaymentDue": "Nema dugovanja",
+      "averagePricePerUnit": "Prosečna cena po kWh",
+      "totalKwh": "Ukupno kWh"
+    },
+    "charts": {
+      "monthlyExpenses": "Mesečni troškovi",
+      "yearlyExpenses": "Godišnji troškovi",
+      "paidVsUnpaid": "Plaćeno naspram neplaćenog",
+      "expenseTrend": "Trend troškova",
+      "kwhConsumption": "Potrošnja u kWh",
+      "highLowSplit": "Odnos više i niže tarife"
     }
   }
 }

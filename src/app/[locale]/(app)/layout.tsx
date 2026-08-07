@@ -41,6 +41,12 @@ export default async function AppLayout({
             <span className="text-muted-foreground" aria-hidden="true">
               ·
             </span>
+            <Link href="/utilities" className="hover:text-primary">
+              {t("utilities")}
+            </Link>
+            <span className="text-muted-foreground" aria-hidden="true">
+              ·
+            </span>
             <Link href="/settings/household" className="hover:text-primary">
               {t("settings")}
             </Link>

@@ -97,7 +97,8 @@
     "emptyBody": "Add your first vehicle or utility bill to start seeing statistics here.",
     "addVehicleCta": "Add a vehicle",
     "addBillCta": "Add a utility bill",
-    "vehiclesTitle": "Vehicles"
+    "vehiclesTitle": "Vehicles",
+    "utilitiesTitle": "Utilities"
   },
   "common": {
     "cancel": "Cancel",
@@ -182,6 +183,89 @@
       "monthlySpending": "Monthly spending",
       "monthlyLiters": "Monthly litres",
       "consumptionTrend": "Consumption trend"
+    }
+  },
+  "utilities": {
+    "account": {
+      "title": "Utilities",
+      "addButton": "Add account",
+      "addTitle": "Add utility account",
+      "editTitle": "Edit utility account",
+      "name": "Name",
+      "provider": "Provider",
+      "accountNumber": "Account number",
+      "meterNumber": "Meter number",
+      "submit": "Save account",
+      "archiveButton": "Archive",
+      "unarchiveButton": "Unarchive",
+      "deleteButton": "Delete",
+      "confirmDelete": "Delete {name}? This can't be undone.",
+      "deleteBlocked": "This account has bills and can't be deleted — archive it instead.",
+      "archived": "Archived",
+      "emptyTitle": "No utility accounts yet",
+      "emptyBody": "Add your electricity account to start tracking bills.",
+      "showArchived": "Show archived"
+    },
+    "bill": {
+      "title": "Bills",
+      "addButton": "Add bill",
+      "addTitle": "Add bill",
+      "editTitle": "Edit bill",
+      "periodFrom": "Period from",
+      "periodTo": "Period to",
+      "issueDate": "Issue date",
+      "dueDate": "Due date",
+      "amount": "Amount",
+      "paymentDate": "Payment date",
+      "invoiceNumber": "Invoice number",
+      "notes": "Notes",
+      "submit": "Save bill",
+      "editButton": "Edit",
+      "deleteButton": "Delete",
+      "confirmDelete": "Delete this bill? This can't be undone.",
+      "emptyTitle": "No bills yet",
+      "emptyBody": "Add your first bill after it arrives.",
+      "periodOrderError": "Period end can't be before period start.",
+      "duplicatePeriodError": "A bill for this exact period already exists on this account.",
+      "readingBelowPreviousError": "Current reading is below the previous one — check it, or mark the meter as rolled over.",
+      "readingsTitle": "Meter readings",
+      "highBand": "High tariff",
+      "lowBand": "Low tariff",
+      "previousReading": "Previous reading",
+      "currentReading": "Current reading",
+      "rollover": "Meter rolled over",
+      "markPaid": "Mark paid",
+      "markUnpaid": "Mark unpaid",
+      "addedBy": "Added by {name}",
+      "filterPlaceholder": "Filter by invoice number or notes"
+    },
+    "status": {
+      "PAID": "Paid",
+      "OVERDUE": "Overdue",
+      "UNPAID": "Unpaid"
+    },
+    "stats": {
+      "totalPaid": "Total paid",
+      "totalUnpaid": "Total unpaid",
+      "overdueCount": "Overdue bills",
+      "overdueValue": "Overdue amount",
+      "averageMonthlyBill": "Average bill",
+      "highestBill": "Highest bill",
+      "lowestBill": "Lowest bill",
+      "currentMonthTotal": "This month",
+      "currentYearTotal": "This year",
+      "nextPaymentDue": "Next payment due",
+      "noPaymentDue": "Nothing due",
+      "averagePricePerUnit": "Average price per kWh",
+      "totalKwh": "Total kWh"
+    },
+    "charts": {
+      "monthlyExpenses": "Monthly expenses",
+      "yearlyExpenses": "Yearly expenses",
+      "paidVsUnpaid": "Paid vs. unpaid",
+      "expenseTrend": "Expense trend",
+      "kwhConsumption": "kWh consumption",
+      "highLowSplit": "High/low tariff split"
     }
   }
 }
