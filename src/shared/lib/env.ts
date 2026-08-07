@@ -18,6 +18,10 @@ const envSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   SMTP_FROM: z.string().optional(),
+  // Document scanning (optional — the app runs fully without it; the scan
+  // entry points are simply hidden when no key is configured).
+  DOCUMENT_EXTRACTION_PROVIDER: z.enum(["claude"]).default("claude"),
+  DOCUMENT_EXTRACTION_API_KEY: z.string().optional(),
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
