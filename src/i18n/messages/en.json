@@ -1,0 +1,101 @@
+{
+  "app": {
+    "name": "Expense Manager"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "vehicles": "Vehicles",
+    "utilities": "Utilities",
+    "settings": "Settings",
+    "signOut": "Sign out"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "localeSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "sr-Latn": "Serbian (Latin)"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Welcome back.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Register",
+      "invalidCredentials": "Incorrect email or password.",
+      "accountLocked": "Too many failed attempts. Try again in a few minutes."
+    },
+    "register": {
+      "title": "Create your household",
+      "subtitle": "You're the first person here — this creates the household and makes you its owner.",
+      "householdName": "Household name",
+      "name": "Your name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "currency": "Household currency",
+      "submit": "Create household",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Sign in",
+      "closedTitle": "Registration is closed",
+      "closedBody": "This household already exists. Ask an owner to send you an invitation instead."
+    },
+    "invite": {
+      "title": "Join {household}",
+      "subtitle": "Set your name and password to join the household.",
+      "name": "Your name",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "submit": "Join household",
+      "expiredTitle": "This invitation has expired",
+      "expiredBody": "Ask the household owner to send you a new one.",
+      "invalidTitle": "This invitation link isn't valid",
+      "invalidBody": "It may have already been used. Ask the household owner to send you a new one."
+    }
+  },
+  "validation": {
+    "required": "This field is required.",
+    "invalidEmail": "Enter a valid email address.",
+    "passwordTooShort": "Password must be at least 10 characters.",
+    "passwordTooCommon": "That password is too common — please choose another.",
+    "passwordsDontMatch": "Passwords don't match.",
+    "emailInUse": "An account with this email already exists.",
+    "invalidToken": "This link is invalid or has expired."
+  },
+  "household": {
+    "settings": {
+      "title": "Household",
+      "nameLabel": "Household name",
+      "currencyLabel": "Currency",
+      "currencyLockedNotice": "Currency can't be changed once fuel entries or bills exist, since existing amounts would be silently reinterpreted."
+    },
+    "members": {
+      "title": "Members",
+      "roleOwner": "Owner",
+      "roleMember": "Member",
+      "addedBy": "Added by {name}",
+      "inviteButton": "Invite member",
+      "inviteEmailLabel": "Email",
+      "inviteRoleLabel": "Role",
+      "inviteSubmit": "Send invitation",
+      "pendingInvitations": "Pending invitations",
+      "copyInviteLink": "Copy invite link",
+      "inviteLinkCopied": "Link copied.",
+      "noEmailNotice": "Email isn't configured yet — copy the link below and share it directly."
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "emptyTitle": "Nothing tracked yet",
+    "emptyBody": "Add your first vehicle or utility bill to start seeing statistics here.",
+    "addVehicleCta": "Add a vehicle",
+    "addBillCta": "Add a utility bill"
+  }
+}

@@ -1,0 +1,290 @@
+// Personal Expense & Utility Tracker — database schema
+// See docs/Personal_Expense_Utility_Tracker_SRS_v1.1.md §15 for the design rationale.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  OWNER
+  MEMBER
+}
+
+enum Locale {
+  EN
+  SR_LATN
+}
+
+enum Currency {
+  MKD
+  EUR
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  LPG
+  CNG
+  ELECTRIC
+  HYBRID
+}
+
+enum UtilityType {
+  ELECTRICITY
+  WATER
+  GAS
+  INTERNET
+  MOBILE
+}
+
+enum TariffBand {
+  SINGLE
+  HIGH
+  LOW
+}
+
+enum MeasurementUnit {
+  KWH
+  M3
+}
+
+enum DerivedField {
+  NONE
+  FUEL_PRICE
+  LITERS
+  TOTAL_PAID
+}
+
+// ---------------------------------------------------------------------------
+// Household & auth
+// ---------------------------------------------------------------------------
+
+model Household {
+  id        String   @id @default(cuid())
+  name      String
+  currency  Currency @default(MKD)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members         User[]
+  invitations     Invitation[]
+  vehicles        Vehicle[]
+  fuelEntries     FuelEntry[]
+  utilityAccounts UtilityAccount[]
+  utilityBills    UtilityBill[]
+}
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String
+  passwordHash        String
+  locale              Locale    @default(EN)
+  role                Role      @default(MEMBER)
+  householdId         String
+  household           Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  accounts             Account[]
+  sessions             Session[]
+  invitationsCreated   Invitation[]         @relation("InvitationCreatedBy")
+  passwordResetTokens  PasswordResetToken[]
+  fuelEntriesCreated   FuelEntry[]          @relation("FuelEntryCreatedBy")
+  utilityBillsCreated  UtilityBill[]        @relation("UtilityBillCreatedBy")
+
+  @@index([householdId])
+}
+
+model Invitation {
+  id              String     @id @default(cuid())
+  householdId     String
+  household       Household  @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  email           String
+  tokenHash       String     @unique
+  role            Role       @default(MEMBER)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdByUserId String
+  createdBy       User       @relation("InvitationCreatedBy", fields: [createdByUserId], references: [id])
+  createdAt       DateTime   @default(now())
+
+  @@index([householdId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+// --- Auth.js (NextAuth v5) adapter models -----------------------------------
+// Present from the start so OAuth providers can be added later without a
+// migration, even though only Credentials is enabled today. See SRS §6.3.
+
+model Account {
+  id                       String  @id @default(cuid())
+  userId                   String
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String?
+  access_token             String?
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String?
+  session_state            String?
+  refresh_token_expires_in Int?
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Fuel module
+// ---------------------------------------------------------------------------
+
+model Vehicle {
+  id              String    @id @default(cuid())
+  householdId     String
+  household       Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  name            String
+  manufacturer    String?
+  model           String?
+  fuelType        FuelType
+  licensePlate    String?
+  initialOdometer Int       @default(0)
+  notes           String?
+  archivedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  fuelEntries FuelEntry[]
+
+  @@index([householdId, archivedAt])
+}
+
+model FuelEntry {
+  id              String       @id @default(cuid())
+  householdId     String
+  household       Household    @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  vehicleId       String
+  vehicle         Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdByUserId String
+  createdBy       User         @relation("FuelEntryCreatedBy", fields: [createdByUserId], references: [id])
+  date            DateTime     @db.Date
+  odometer        Int
+  fuelPrice       Decimal      @db.Decimal(10, 3)
+  liters          Decimal      @db.Decimal(10, 3)
+  totalPaid       Decimal      @db.Decimal(12, 2)
+  currency        Currency
+  isFullTank      Boolean      @default(true)
+  missedEntries   Boolean      @default(false)
+  derivedField    DerivedField @default(NONE)
+  station         String?
+  notes           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([vehicleId, date, odometer])
+  @@index([householdId, date])
+  @@index([vehicleId, odometer])
+}
+
+// ---------------------------------------------------------------------------
+// Utilities module (electricity in the MVP; see SRS §11)
+// ---------------------------------------------------------------------------
+
+model UtilityAccount {
+  id             String           @id @default(cuid())
+  householdId    String
+  household      Household        @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  utilityType    UtilityType
+  name           String
+  provider       String?
+  accountNumber  String?
+  meterNumber    String?
+  tracksReadings Boolean          @default(false)
+  unit           MeasurementUnit?
+  archivedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  bills UtilityBill[]
+
+  @@index([householdId, utilityType])
+}
+
+model UtilityBill {
+  id              String    @id @default(cuid())
+  householdId     String
+  household       Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  accountId       String
+  account         UtilityAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  createdByUserId String
+  createdBy       User      @relation("UtilityBillCreatedBy", fields: [createdByUserId], references: [id])
+  periodFrom      DateTime  @db.Date
+  periodTo        DateTime  @db.Date
+  issueDate       DateTime? @db.Date
+  dueDate         DateTime  @db.Date
+  amount          Decimal   @db.Decimal(12, 2)
+  currency        Currency
+  paymentDate     DateTime? @db.Date
+  invoiceNumber   String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  readings UtilityBillReading[]
+
+  @@unique([accountId, periodFrom, periodTo])
+  @@index([householdId, periodFrom])
+  @@index([householdId, paymentDate])
+}
+
+model UtilityBillReading {
+  id              String          @id @default(cuid())
+  billId          String
+  bill            UtilityBill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+  band            TariffBand      @default(SINGLE)
+  previousReading Decimal         @db.Decimal(12, 3)
+  currentReading  Decimal         @db.Decimal(12, 3)
+  consumption     Decimal         @db.Decimal(12, 3)
+  unit            MeasurementUnit
+  meterRollover   Boolean         @default(false)
+
+  @@unique([billId, band])
+}

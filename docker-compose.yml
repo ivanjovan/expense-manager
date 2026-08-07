@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: expense-manager-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: expense
+      POSTGRES_PASSWORD: expense_dev_password
+      POSTGRES_DB: expense_manager
+    ports:
+      - "5432:5432"
+    volumes:
+      - expense-manager-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U expense -d expense_manager"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  expense-manager-db-data:

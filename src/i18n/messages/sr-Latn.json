@@ -1,0 +1,101 @@
+{
+  "app": {
+    "name": "Expense Manager"
+  },
+  "nav": {
+    "dashboard": "Kontrolna tabla",
+    "vehicles": "Vozila",
+    "utilities": "Režije",
+    "settings": "Podešavanja",
+    "signOut": "Odjava"
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Svetla",
+    "dark": "Tamna",
+    "system": "Sistemska"
+  },
+  "localeSwitcher": {
+    "label": "Jezik",
+    "en": "Engleski",
+    "sr-Latn": "Srpski (latinica)"
+  },
+  "auth": {
+    "login": {
+      "title": "Prijava",
+      "subtitle": "Dobrodošli nazad.",
+      "email": "Email",
+      "password": "Lozinka",
+      "submit": "Prijavi se",
+      "noAccount": "Nemate nalog?",
+      "registerLink": "Registrujte se",
+      "invalidCredentials": "Pogrešan email ili lozinka.",
+      "accountLocked": "Previše neuspešnih pokušaja. Pokušajte ponovo za nekoliko minuta."
+    },
+    "register": {
+      "title": "Kreirajte vaše domaćinstvo",
+      "subtitle": "Vi ste prva osoba ovde — ovim se kreira domaćinstvo i vi postajete njegov vlasnik.",
+      "householdName": "Naziv domaćinstva",
+      "name": "Vaše ime",
+      "email": "Email",
+      "password": "Lozinka",
+      "confirmPassword": "Potvrdite lozinku",
+      "currency": "Valuta domaćinstva",
+      "submit": "Kreiraj domaćinstvo",
+      "haveAccount": "Već imate nalog?",
+      "loginLink": "Prijavite se",
+      "closedTitle": "Registracija je zatvorena",
+      "closedBody": "Ovo domaćinstvo već postoji. Zamolite vlasnika da vam pošalje pozivnicu."
+    },
+    "invite": {
+      "title": "Pridružite se: {household}",
+      "subtitle": "Postavite ime i lozinku da biste se pridružili domaćinstvu.",
+      "name": "Vaše ime",
+      "password": "Lozinka",
+      "confirmPassword": "Potvrdite lozinku",
+      "submit": "Pridruži se domaćinstvu",
+      "expiredTitle": "Ova pozivnica je istekla",
+      "expiredBody": "Zamolite vlasnika domaćinstva da vam pošalje novu.",
+      "invalidTitle": "Ovaj link za pozivnicu nije važeći",
+      "invalidBody": "Možda je već iskorišćen. Zamolite vlasnika domaćinstva da vam pošalje novu."
+    }
+  },
+  "validation": {
+    "required": "Ovo polje je obavezno.",
+    "invalidEmail": "Unesite ispravnu email adresu.",
+    "passwordTooShort": "Lozinka mora imati najmanje 10 karaktera.",
+    "passwordTooCommon": "Ta lozinka je previše uobičajena — izaberite drugu.",
+    "passwordsDontMatch": "Lozinke se ne poklapaju.",
+    "emailInUse": "Nalog sa ovim email-om već postoji.",
+    "invalidToken": "Ovaj link nije važeći ili je istekao."
+  },
+  "household": {
+    "settings": {
+      "title": "Domaćinstvo",
+      "nameLabel": "Naziv domaćinstva",
+      "currencyLabel": "Valuta",
+      "currencyLockedNotice": "Valutu nije moguće promeniti nakon što postoje unosi goriva ili računi, jer bi postojeći iznosi bili tiho reinterpretirani."
+    },
+    "members": {
+      "title": "Članovi",
+      "roleOwner": "Vlasnik",
+      "roleMember": "Član",
+      "addedBy": "Dodao/la {name}",
+      "inviteButton": "Pozovi člana",
+      "inviteEmailLabel": "Email",
+      "inviteRoleLabel": "Uloga",
+      "inviteSubmit": "Pošalji pozivnicu",
+      "pendingInvitations": "Poslate pozivnice",
+      "copyInviteLink": "Kopiraj link za pozivnicu",
+      "inviteLinkCopied": "Link je kopiran.",
+      "noEmailNotice": "Email još nije podešen — kopirajte link ispod i podelite ga direktno."
+    }
+  },
+  "dashboard": {
+    "title": "Kontrolna tabla",
+    "emptyTitle": "Još uvek nema podataka",
+    "emptyBody": "Dodajte prvo vozilo ili račun za režije da biste ovde videli statistiku.",
+    "addVehicleCta": "Dodaj vozilo",
+    "addBillCta": "Dodaj račun za režije"
+  }
+}

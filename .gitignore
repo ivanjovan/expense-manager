@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +40,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma (generated client — regenerate with `npx prisma generate`)
+/src/generated
+
+# local database backups
+/backups
+
+# vendored AI-agent skill docs (mirrors of Prisma's own docs, fetched by
+# `prisma init`/`prisma generate`) — regeneratable, not project source
+/.agents
+/.claude/skills
+/.windsurf/skills
+skills-lock.json
