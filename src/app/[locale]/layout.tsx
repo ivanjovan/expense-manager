@@ -48,6 +48,9 @@ export default async function LocaleLayout({
         <ThemeScript />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <div className="app-backdrop" aria-hidden="true">
+          <div className="app-backdrop-blob" />
+        </div>
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>
