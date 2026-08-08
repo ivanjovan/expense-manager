@@ -52,13 +52,26 @@ Rules:
 - Numbers use a decimal point. These documents commonly use a decimal comma and dotted thousands (1.234,56 means 1234.56).
 - Fuel receipts: a per-litre price typically has 3 decimals (1.729) and is a small number; do not confuse it with a total.
 - Electricity bills: report high (VT/дневна) and low (NT/ноќна) tariff meter readings separately when both are present.
-- Electricity bills often span two pages. Read them as ONE bill: meter readings usually sit on one page and the money breakdown on the other.
+- Electricity bills often span two pages, and a photographed page may be rotated 90 degrees. Read every page fully, in any orientation, and combine them into ONE bill: the money summary is usually on one page and the meter table on the other.
+- Extract every field below that appears anywhere across the pages. Do not stop after the money summary.
+- Macedonian electricity bills (EVN) label things like this:
+  * "Фактура за период 20.05.2026 - 17.06.2026" -> periodFrom and periodTo
+  * "Место и датум на издавање: Скопје, 24.06.2026" -> issueDate
+  * "со рок до 14.07.2026" / "рок за плаќање" -> dueDate
+  * "Износ за плаќање по фактура" -> totalAmount (THIS period only)
+  * "ДДВ 18%" -> taxAmount
+  * "Заостанат долг" / "претходен долг" -> previousDebt (carried over from earlier bills)
+  * "Вкупно за плаќање" -> totalDue (the final figure on the slip)
+  * "Број на корисник" -> customerNumber, "Фактура број" -> invoiceNumber
+- The meter table ("Податоци од броило") has one row per tariff. Each row gives "Стара состојба" (previous reading) and "Нова состојба" (current reading):
+  * the row marked ВТ (висока тарифа / high) -> previousReadingHigh and currentReadingHigh
+  * the row marked НТ (ниска тарифа / low) -> previousReadingLow and currentReadingLow
+  Report these meter readings, not the consumed quantity ("Пресметана количина") and not the price.
 - Money fields on an electricity bill, kept strictly separate:
   * totalAmount = what THIS billing period costs, including tax. Do NOT include any debt carried over from an earlier bill.
   * taxAmount = the tax (DDV/ДДВ/VAT) portion already contained in totalAmount.
-  * previousDebt = unpaid balance brought forward from previous bills (dolg/долг, претходно задолжување, "previous balance"). Omit it if the bill shows none.
+  * previousDebt = unpaid balance brought forward. Omit it if the bill shows none.
   * totalDue = the final figure printed on the payment slip, which normally equals totalAmount + previousDebt.
-  If the bill only prints a single grand total and a carried-over debt, report that grand total as totalDue and the difference as totalAmount only if the bill states it explicitly — otherwise omit totalAmount rather than calculating it yourself.
 - If the document is not a fuel receipt or an electricity bill, or you cannot tell, return documentType UNKNOWN.`;
 
 /** Anthropic's documented image ceiling is 2576px on the long edge; larger

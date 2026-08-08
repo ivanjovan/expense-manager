@@ -78,8 +78,11 @@ export function providerErrorHint(description: string): string | undefined {
   if (/location is not supported|user location/.test(text)) {
     return "The Gemini API is not available from this deployment's region.";
   }
+  if (isDailyQuotaExhausted(description)) {
+    return "Daily free-tier quota exhausted for this model (20 requests/day). It resets tomorrow, or switch DOCUMENT_EXTRACTION_MODEL — each model has its own allowance.";
+  }
   if (/\[429]|quota|rate limit|resource_exhausted/.test(text)) {
-    return "Rate limit or quota exhausted — free-tier limits are per-minute and per-day.";
+    return "Rate limited — free-tier limits are per-minute as well as per-day.";
   }
   return undefined;
 }
@@ -97,5 +100,15 @@ export function isRetryableStatus(description: string): boolean {
   const match = description.match(/^\[(\d{3})]/);
   if (!match) return false;
   const status = Number(match[1]);
-  return status === 429 || (status >= 500 && status < 600);
+  // A per-day quota does not refill in the seconds a retry waits. Gemini's
+  // free tier allows 20 requests per day per model, so retrying that 429
+  // three times only triples the wait before telling the user something
+  // they need to act on. Per-minute limits do clear, and are retried.
+  if (status === 429) return !isDailyQuotaExhausted(description);
+  return status >= 500 && status < 600;
+}
+
+/** Distinguishes "slow down" from "come back tomorrow". */
+export function isDailyQuotaExhausted(description: string): boolean {
+  return /perday|per day|requests_per_day|quotaid[^,]*day/i.test(description);
 }

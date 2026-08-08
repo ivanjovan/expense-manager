@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describeProviderError, isRetryableStatus, providerErrorHint, redactSecrets } from "./provider-error";
+import { describeProviderError, isDailyQuotaExhausted, isRetryableStatus, providerErrorHint, redactSecrets } from "./provider-error";
 
 /**
  * Redaction is the security-relevant half of this module: Google's client
@@ -122,5 +122,29 @@ describe("isRetryableStatus", () => {
   it("does not retry when there is no status to judge", () => {
     expect(isRetryableStatus("network down")).toBe(false);
     expect(isRetryableStatus("")).toBe(false);
+  });
+});
+
+describe("daily quota", () => {
+  const DAILY =
+    '[429] Quota exceeded for metric: generate_content_free_tier_requests, limit: 20 ' +
+    '"quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier"';
+
+  it("recognizes the per-day free-tier limit", () => {
+    expect(isDailyQuotaExhausted(DAILY)).toBe(true);
+  });
+
+  it("does not retry a limit that will not clear in seconds", () => {
+    // Retrying a daily cap only triples the delay before telling the user
+    // something they have to act on.
+    expect(isRetryableStatus(DAILY)).toBe(false);
+  });
+
+  it("still retries a per-minute rate limit", () => {
+    expect(isRetryableStatus("[429] Resource exhausted, please retry")).toBe(true);
+  });
+
+  it("tells the user how to get working again today", () => {
+    expect(providerErrorHint(DAILY)).toMatch(/DOCUMENT_EXTRACTION_MODEL|resets tomorrow/i);
   });
 });
