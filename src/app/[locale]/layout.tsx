@@ -5,6 +5,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { pickClientMessages } from "@/i18n/client-messages";
 import { ThemeScript } from "@/shared/components/theme-script";
 import "../globals.css";
 
@@ -44,7 +45,9 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale);
 
-  const messages = await getMessages();
+  // Trimmed of the spreadsheet vocabulary, which only the export builder
+  // reads and which would otherwise ride along in every page's RSC payload.
+  const messages = pickClientMessages(await getMessages());
 
   return (
     <html
