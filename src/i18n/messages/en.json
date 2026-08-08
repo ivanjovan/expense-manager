@@ -267,5 +267,57 @@
       "kwhConsumption": "kWh consumption",
       "highLowSplit": "High/low tariff split"
     }
+  },
+  "documents": {
+    "scan": {
+      "title": "Scan the document",
+      "subtitle": "Take a photo and we'll fill in what we can read. You review everything before saving.",
+      "takePhoto": "Take photo",
+      "chooseFile": "Choose file",
+      "preparing": "Preparing…",
+      "reading": "Reading…",
+      "previewAlt": "Captured document",
+      "scanned": "scanned",
+      "checkValue": "check this",
+      "odometerNeeded": "Not on the receipt — enter it yourself.",
+      "readingsNeeded": "The meter readings couldn't be read from this bill. Enter all four below, or the bill can't be saved.",
+      "fullTankQuestion": "Did you fill the tank completely?",
+      "fullTankWhy": "Receipts don't say, and consumption figures depend on it — so we won't guess.",
+      "fullTankYes": "Yes, full tank",
+      "fullTankNo": "No, partial fill"
+    },
+    "errors": {
+      "unauthenticated": "Your session expired. Sign in again and retry.",
+      "no_file": "No image was received. Try capturing again.",
+      "unsupported_type": "That file type isn't supported. Use a JPEG, PNG or WebP photo.",
+      "file_too_large": "That image is too large. Try again with a smaller photo.",
+      "provider_not_configured": "Scanning isn't set up on this server yet.",
+      "provider_failed": "Couldn't read the document. Try again, or enter the values manually.",
+      "unreadable_document": "The image couldn't be read. Try a sharper, better-lit photo.",
+      "network": "Couldn't reach the server. Check your connection and try again."
+    },
+    "notices": {
+      "currencyMismatch": "This document is in {documentCurrency}, but your household records everything in {householdCurrency}. Saving is blocked because totals would be wrong. Enter it manually if the amount is genuinely in {householdCurrency}.",
+      "typeMismatch": "This doesn't look like the kind of document expected here, so nothing was filled in. Check you scanned the right page.",
+      "sampleData": "Sample data — no scanning service is configured, so these values are invented, not read from your document. Don't save them as-is.",
+      "lowConfidence": "{count, plural, one {# value was hard to read} other {# values were hard to read}}: {fields}. Check them against the document before saving."
+    },
+    "fields": {
+      "date": "date",
+      "fuelPrice": "price per litre",
+      "liters": "litres",
+      "totalPaid": "total paid",
+      "station": "station",
+      "periodFrom": "period from",
+      "periodTo": "period to",
+      "issueDate": "issue date",
+      "dueDate": "due date",
+      "amount": "amount",
+      "invoiceNumber": "invoice number",
+      "previousReadingHigh": "previous high-tariff reading",
+      "currentReadingHigh": "current high-tariff reading",
+      "previousReadingLow": "previous low-tariff reading",
+      "currentReadingLow": "current low-tariff reading"
+    }
   }
 }

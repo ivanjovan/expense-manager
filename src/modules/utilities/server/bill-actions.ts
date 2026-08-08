@@ -135,6 +135,7 @@ export async function createUtilityBill(
         paymentDate: input.paymentDate,
         invoiceNumber: cleanOptional(input.invoiceNumber),
         notes: cleanOptional(input.notes),
+        inputMethod: input.inputMethod,
         readings: { create: readings },
       },
     });

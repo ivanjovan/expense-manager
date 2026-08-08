@@ -1,6 +1,7 @@
 import "server-only";
 import { env } from "@/shared/lib/env";
 import { ClaudeDocumentExtractionProvider } from "./claude-provider";
+import { MockDocumentExtractionProvider } from "./mock-provider";
 import { DocumentExtractionError, type DocumentExtractionProvider } from "./types";
 
 /**
@@ -14,29 +15,44 @@ import { DocumentExtractionError, type DocumentExtractionProvider } from "./type
 
 let cached: DocumentExtractionProvider | null = null;
 
+/** Whether scanning can be offered at all. The UI hides its entry points
+ * when this is false rather than showing a button that always fails. */
 export function isDocumentExtractionConfigured(): boolean {
+  if (env.DOCUMENT_EXTRACTION_PROVIDER === "mock") return true;
   return Boolean(env.DOCUMENT_EXTRACTION_API_KEY);
 }
 
 export function getDocumentExtractionProvider(): DocumentExtractionProvider {
   if (cached) return cached;
 
-  const apiKey = env.DOCUMENT_EXTRACTION_API_KEY;
-  if (!apiKey) {
-    throw new DocumentExtractionError(
-      "provider_not_configured",
-      "DOCUMENT_EXTRACTION_API_KEY is not set"
-    );
-  }
-
   switch (env.DOCUMENT_EXTRACTION_PROVIDER) {
-    case "claude":
+    case "mock":
+      // No credential — that's the point of it.
+      cached = new MockDocumentExtractionProvider();
+      return cached;
+
+    case "claude": {
+      const apiKey = env.DOCUMENT_EXTRACTION_API_KEY;
+      if (!apiKey) {
+        throw new DocumentExtractionError(
+          "provider_not_configured",
+          "DOCUMENT_EXTRACTION_API_KEY is not set"
+        );
+      }
       cached = new ClaudeDocumentExtractionProvider(apiKey);
       return cached;
+    }
+
     default:
       throw new DocumentExtractionError(
         "provider_not_configured",
         `Unknown document extraction provider: ${env.DOCUMENT_EXTRACTION_PROVIDER}`
       );
   }
+}
+
+/** Test seam — the registry caches, and a test switching providers would
+ * otherwise get whichever one ran first. */
+export function resetDocumentExtractionProvider(): void {
+  cached = null;
 }

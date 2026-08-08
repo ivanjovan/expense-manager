@@ -23,6 +23,10 @@ export const fuelEntrySchema = z.object({
   liters: z.coerce.number({ message: "validation.required" }).positive({ message: "validation.required" }),
   totalPaid: z.coerce.number({ message: "validation.required" }).positive({ message: "validation.required" }),
   derivedField: z.enum(DERIVED_FIELDS).default("NONE"),
+  /** Provenance only — see the InputMethod enum in the Prisma schema. Never
+   * affects validation: a scanned entry is reviewed by a human before it
+   * gets here, so it earns no less trust than a typed one. */
+  inputMethod: z.enum(["MANUAL", "OCR"]).default("MANUAL"),
   isFullTank: checkbox,
   missedEntries: checkbox,
   station: z.string().max(200).optional().or(z.literal("")),

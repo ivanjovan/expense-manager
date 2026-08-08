@@ -35,6 +35,8 @@ export const utilityBillSchema = z
     paymentDate: optionalCalendarDate,
     invoiceNumber: z.string().max(100).optional().or(z.literal("")),
     notes: z.string().max(2000).optional().or(z.literal("")),
+    /** Provenance only — see the InputMethod enum in the Prisma schema. */
+    inputMethod: z.enum(["MANUAL", "OCR"]).default("MANUAL"),
     previousReadingHigh: z.coerce.number().min(0).optional(),
     currentReadingHigh: z.coerce.number().min(0).optional(),
     rolloverHigh: checkbox,

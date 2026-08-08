@@ -20,7 +20,9 @@ const envSchema = z.object({
   SMTP_FROM: z.string().optional(),
   // Document scanning (optional — the app runs fully without it; the scan
   // entry points are simply hidden when no key is configured).
-  DOCUMENT_EXTRACTION_PROVIDER: z.enum(["claude"]).default("claude"),
+  // "mock" returns fixtures and needs no key; the review UI labels every
+  // result it produces as sample data.
+  DOCUMENT_EXTRACTION_PROVIDER: z.enum(["claude", "mock"]).default("claude"),
   DOCUMENT_EXTRACTION_API_KEY: z.string().optional(),
   NODE_ENV: z
     .enum(["development", "test", "production"])

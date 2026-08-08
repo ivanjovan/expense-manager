@@ -267,5 +267,57 @@
       "kwhConsumption": "Potrošnja u kWh",
       "highLowSplit": "Odnos više i niže tarife"
     }
+  },
+  "documents": {
+    "scan": {
+      "title": "Skeniraj dokument",
+      "subtitle": "Slikaj dokument i popunićemo ono što možemo da pročitamo. Sve pregledaš pre čuvanja.",
+      "takePhoto": "Slikaj",
+      "chooseFile": "Izaberi fajl",
+      "preparing": "Priprema…",
+      "reading": "Čitanje…",
+      "previewAlt": "Slikani dokument",
+      "scanned": "skenirano",
+      "checkValue": "proveri",
+      "odometerNeeded": "Nema ga na računu — unesi ga sam.",
+      "readingsNeeded": "Stanja brojila nisu pročitana sa ovog računa. Unesi sva četiri ispod, inače račun ne može da se sačuva.",
+      "fullTankQuestion": "Da li si napunio rezervoar do vrha?",
+      "fullTankWhy": "Na računu ne piše, a potrošnja zavisi od toga — zato ne nagađamo.",
+      "fullTankYes": "Da, pun rezervoar",
+      "fullTankNo": "Ne, delimično"
+    },
+    "errors": {
+      "unauthenticated": "Sesija je istekla. Prijavi se ponovo i pokušaj opet.",
+      "no_file": "Slika nije primljena. Pokušaj ponovo.",
+      "unsupported_type": "Taj tip fajla nije podržan. Koristi JPEG, PNG ili WebP sliku.",
+      "file_too_large": "Slika je prevelika. Pokušaj sa manjom slikom.",
+      "provider_not_configured": "Skeniranje još nije podešeno na ovom serveru.",
+      "provider_failed": "Dokument nije mogao da se pročita. Pokušaj ponovo ili unesi vrednosti ručno.",
+      "unreadable_document": "Slika nije mogla da se pročita. Pokušaj sa oštrijom i bolje osvetljenom slikom.",
+      "network": "Server nije dostupan. Proveri vezu i pokušaj ponovo."
+    },
+    "notices": {
+      "currencyMismatch": "Ovaj dokument je u {documentCurrency}, a tvoje domaćinstvo vodi sve u {householdCurrency}. Čuvanje je blokirano jer bi zbirovi bili pogrešni. Unesi ručno ako je iznos zaista u {householdCurrency}.",
+      "typeMismatch": "Ovo ne liči na dokument koji se ovde očekuje, pa ništa nije popunjeno. Proveri da li si skenirao pravu stranu.",
+      "sampleData": "Probni podaci — servis za skeniranje nije podešen, pa su ove vrednosti izmišljene, a ne pročitane sa tvog dokumenta. Nemoj ih sačuvati ovakve.",
+      "lowConfidence": "{count, plural, one {# vrednost je bila teško čitljiva} few {# vrednosti su bile teško čitljive} other {# vrednosti je bilo teško čitljivo}}: {fields}. Proveri ih sa dokumentom pre čuvanja."
+    },
+    "fields": {
+      "date": "datum",
+      "fuelPrice": "cena po litru",
+      "liters": "litri",
+      "totalPaid": "ukupno plaćeno",
+      "station": "pumpa",
+      "periodFrom": "period od",
+      "periodTo": "period do",
+      "issueDate": "datum izdavanja",
+      "dueDate": "rok plaćanja",
+      "amount": "iznos",
+      "invoiceNumber": "broj računa",
+      "previousReadingHigh": "prethodno stanje više tarife",
+      "currentReadingHigh": "trenutno stanje više tarife",
+      "previousReadingLow": "prethodno stanje niže tarife",
+      "currentReadingLow": "trenutno stanje niže tarife"
+    }
   }
 }

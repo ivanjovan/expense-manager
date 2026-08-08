@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { BillForm } from "@/modules/utilities/components/bill-form";
 import { getUtilityAccount, getUtilityBillsForAccount } from "@/modules/utilities/server/queries";
+import { getHousehold } from "@/modules/household/server/queries";
+import { isDocumentExtractionConfigured } from "@/modules/documents/server/extract";
 
 export default async function NewUtilityBillPage({
   params,
@@ -10,10 +12,11 @@ export default async function NewUtilityBillPage({
   params: Promise<{ accountId: string }>;
 }) {
   const { accountId } = await params;
-  const [t, account, bills] = await Promise.all([
+  const [t, account, bills, household] = await Promise.all([
     getTranslations("utilities.bill"),
     getUtilityAccount(accountId),
     getUtilityBillsForAccount(accountId),
+    getHousehold(),
   ]);
 
   if (!account) notFound();
@@ -39,6 +42,11 @@ export default async function NewUtilityBillPage({
             mode="create"
             accountId={accountId}
             tracksReadings={account.tracksReadings}
+            householdCurrency={household.currency}
+            // Only electricity bills are modelled by the extraction contract;
+            // offering a scan button on a water or internet account would
+            // promise something the provider can't classify.
+            scanEnabled={isDocumentExtractionConfigured() && account.utilityType === "ELECTRICITY"}
             previousReadingDefaults={previousReadingDefaults}
           />
         </CardContent>

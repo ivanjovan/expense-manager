@@ -65,6 +65,7 @@ export async function createFuelEntry(
       isFullTank: input.isFullTank,
       missedEntries: input.missedEntries,
       derivedField: input.derivedField,
+      inputMethod: input.inputMethod,
       station: cleanOptional(input.station),
       notes: cleanOptional(input.notes),
     },

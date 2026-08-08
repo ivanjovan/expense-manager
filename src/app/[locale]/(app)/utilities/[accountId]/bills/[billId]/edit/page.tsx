@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { BillForm } from "@/modules/utilities/components/bill-form";
 import { getUtilityAccount, getUtilityBill } from "@/modules/utilities/server/queries";
+import { getHousehold } from "@/modules/household/server/queries";
 
 export default async function EditUtilityBillPage({
   params,
@@ -10,10 +11,11 @@ export default async function EditUtilityBillPage({
   params: Promise<{ accountId: string; billId: string }>;
 }) {
   const { accountId, billId } = await params;
-  const [t, account, bill] = await Promise.all([
+  const [t, account, bill, household] = await Promise.all([
     getTranslations("utilities.bill"),
     getUtilityAccount(accountId),
     getUtilityBill(billId),
+    getHousehold(),
   ]);
 
   if (!account || !bill || bill.accountId !== accountId) notFound();
@@ -35,6 +37,7 @@ export default async function EditUtilityBillPage({
             accountId={accountId}
             billId={bill.id}
             tracksReadings={account.tracksReadings}
+            householdCurrency={household.currency}
             defaultValues={{
               periodFrom: bill.periodFrom.toISOString().slice(0, 10),
               periodTo: bill.periodTo.toISOString().slice(0, 10),

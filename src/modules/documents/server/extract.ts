@@ -1,6 +1,9 @@
 import "server-only";
 import type { DocumentExtractionResult, DocumentType } from "../schemas/extraction";
-import { getDocumentExtractionProvider } from "../providers/registry";
+import {
+  getDocumentExtractionProvider,
+  isDocumentExtractionConfigured,
+} from "../providers/registry";
 import { DocumentExtractionError, type ImageInput } from "../providers/types";
 
 /** Only formats every provider and browser handles. HEIC is deliberately
@@ -35,7 +38,7 @@ export async function extractDocument(
     extraction.documentType !== "UNKNOWN" &&
     extraction.documentType !== expectedType;
 
-  return { extraction, expectedType, mismatch };
+  return { extraction, expectedType, mismatch, provider: provider.name };
 }
 
-export { DocumentExtractionError };
+export { DocumentExtractionError, isDocumentExtractionConfigured };

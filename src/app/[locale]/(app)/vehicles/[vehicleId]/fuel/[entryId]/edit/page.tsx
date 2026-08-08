@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { FuelEntryForm } from "@/modules/fuel/components/fuel-entry-form";
 import { getVehicle, getFuelEntry } from "@/modules/fuel/server/queries";
+import { getHousehold } from "@/modules/household/server/queries";
 
 export default async function EditFuelEntryPage({
   params,
@@ -10,10 +11,11 @@ export default async function EditFuelEntryPage({
   params: Promise<{ vehicleId: string; entryId: string }>;
 }) {
   const { vehicleId, entryId } = await params;
-  const [t, vehicle, entry] = await Promise.all([
+  const [t, vehicle, entry, household] = await Promise.all([
     getTranslations("fuel.entry"),
     getVehicle(vehicleId),
     getFuelEntry(entryId),
+    getHousehold(),
   ]);
 
   if (!vehicle || !entry || entry.vehicleId !== vehicleId) notFound();
@@ -31,6 +33,7 @@ export default async function EditFuelEntryPage({
             mode="edit"
             vehicleId={vehicleId}
             entryId={entry.id}
+            householdCurrency={household.currency}
             defaultValues={{
               date: entry.date.toISOString().slice(0, 10),
               odometer: entry.odometer,

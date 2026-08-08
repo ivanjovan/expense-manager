@@ -6,7 +6,7 @@ import {
   MAX_IMAGE_BYTES,
   DocumentExtractionError,
 } from "@/modules/documents/server/extract";
-import type { DocumentType } from "@/modules/documents/schemas/extraction";
+import type { ApiErrorCode, DocumentType } from "@/modules/documents/schemas/extraction";
 
 /**
  * POST /api/documents/extract  (SRS-scan §22)
@@ -21,18 +21,10 @@ import type { DocumentType } from "@/modules/documents/schemas/extraction";
  * a stable code the client maps to a localized message.
  */
 
-/** Error codes the client has a specific message for. Anything unexpected
+/** Codes the client has a specific message for — defined alongside the
+ * contract so the route and the UI can't drift apart. Anything unexpected
  * collapses to `provider_failed` rather than leaking internals. */
-type ResponseErrorCode =
-  | "unauthenticated"
-  | "no_file"
-  | "unsupported_type"
-  | "file_too_large"
-  | "provider_not_configured"
-  | "provider_failed"
-  | "unreadable_document";
-
-function errorResponse(code: ResponseErrorCode, status: number) {
+function errorResponse(code: ApiErrorCode, status: number) {
   return NextResponse.json({ error: code }, { status });
 }
 

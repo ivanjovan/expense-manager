@@ -64,6 +64,15 @@ enum DerivedField {
   TOTAL_PAID
 }
 
+/// How a record's values first reached the form. OCR means a scan pre-filled
+/// it — the user still reviewed and submitted every value, so this records
+/// provenance, not trust. Kept so a future accuracy question ("are scanned
+/// entries drifting?") is answerable from the data.
+enum InputMethod {
+  MANUAL
+  OCR
+}
+
 // ---------------------------------------------------------------------------
 // Household & auth
 // ---------------------------------------------------------------------------
@@ -214,6 +223,7 @@ model FuelEntry {
   isFullTank      Boolean      @default(true)
   missedEntries   Boolean      @default(false)
   derivedField    DerivedField @default(NONE)
+  inputMethod     InputMethod  @default(MANUAL)
   station         String?
   notes           String?
   createdAt       DateTime     @default(now())
@@ -265,6 +275,7 @@ model UtilityBill {
   paymentDate     DateTime? @db.Date
   invoiceNumber   String?
   notes           String?
+  inputMethod     InputMethod @default(MANUAL)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
