@@ -13,6 +13,23 @@ export async function verifyPassword(
   return bcrypt.compare(password, hash);
 }
 
+/**
+ * A real bcrypt hash at the same cost factor, of a passphrase no account
+ * has. Compared against when the submitted email matches no user, so that
+ * "no such account" costs the same wall-clock time as "wrong password" —
+ * see the call site in auth.ts. Always resolves false; the result is
+ * discarded, only the work matters.
+ *
+ * A constant rather than a hash generated at boot: generating one would put
+ * a cost-12 hash on the startup path of every process, and there is nothing
+ * secret about this value.
+ */
+const DECOY_HASH = "$2b$12$NUkIvVALXCtRxwl3JMwDtOqsyhHVo19ePH/WqdWu9zvpLs48/JH8.";
+
+export async function dummyPasswordCompare(password: string): Promise<void> {
+  await bcrypt.compare(password, DECOY_HASH);
+}
+
 export const MIN_PASSWORD_LENGTH = 10;
 
 /**

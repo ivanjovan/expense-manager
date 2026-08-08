@@ -1,12 +1,20 @@
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
-import { auth } from "@/auth";
+import { authConfig } from "@/auth.config";
 
 // Next.js 16 renamed the `middleware` file convention to `proxy` — see
 // node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md.
-// Proxy now defaults to the Node.js runtime, which is what makes it safe to
-// pull in `auth()` (and, transitively, Prisma) here at all.
+//
+// This builds its own NextAuth instance from the adapter-free shared config
+// rather than importing `auth` from "@/auth". With `strategy: "jwt"` the
+// check below only verifies a signed cookie, so pulling in the Prisma
+// adapter — and with it PrismaClient, the pg driver and env validation — put
+// the entire server data layer on the request path of every navigation, for
+// no benefit. Next's own proxy docs are explicit that this file "is meant to
+// be invoked separately of your render code".
+const { auth } = NextAuth(authConfig);
 
 const intlMiddleware = createMiddleware(routing);
 

@@ -3,7 +3,8 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { z } from "zod";
 import { prisma } from "@/shared/lib/prisma";
-import { verifyPassword } from "@/shared/lib/passwords";
+import { verifyPassword, dummyPasswordCompare } from "@/shared/lib/passwords";
+import { authConfig } from "./auth.config";
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000;
@@ -23,14 +24,14 @@ const credentialsSchema = z.object({
   password: z.string().min(1),
 });
 
+/**
+ * The database-backed half of the config — see auth.config.ts for why the
+ * two are split. Only server code imports this module; `proxy.ts` builds a
+ * second, adapter-free NextAuth instance from the shared config.
+ */
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 }, // 30 days, sliding
-  pages: {
-    // Locale-prefixed sign-in pages can't be expressed as a single static
-    // path here; route protection and redirects are handled in proxy.ts
-    // instead, which knows the current locale.
-  },
   providers: [
     Credentials({
       credentials: {
@@ -47,7 +48,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
         // Deliberately generic: an unknown email and a wrong password both
         // fall through to the same "invalid credentials" outcome below.
-        if (!user) return null;
+        //
+        // The dummy compare keeps the two indistinguishable by *timing* too.
+        // Returning early here was measurably faster than the cost-12 hash a
+        // real account pays for, which turns the response time into an
+        // account-existence oracle — the exact disclosure the generic
+        // outcome above exists to prevent.
+        if (!user) {
+          await dummyPasswordCompare(password);
+          return null;
+        }
 
         if (user.lockedUntil && user.lockedUntil > new Date()) {
           throw new AccountLockedError();
@@ -89,27 +99,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user, trigger, session }) {
-      if (user) {
-        token.userId = user.id!;
-        token.householdId = user.householdId;
-        token.role = user.role;
-        token.locale = user.locale;
-      }
-      // Allows `update()` from the client (e.g. after a locale change) to
-      // refresh the token without forcing a full re-login.
-      if (trigger === "update" && session?.locale) {
-        token.locale = session.locale;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      session.user.id = token.userId;
-      session.user.householdId = token.householdId;
-      session.user.role = token.role;
-      session.user.locale = token.locale;
-      return session;
-    },
-  },
 });
