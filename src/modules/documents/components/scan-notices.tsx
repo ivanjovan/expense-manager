@@ -41,7 +41,7 @@ function Notice({
         ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
         : "border-border bg-muted/50 text-muted-foreground";
   return (
-    <p role={tone === "error" ? "alert" : "status"} className={`rounded-md border px-3 py-2 text-sm ${toneClass}`}>
+    <p role={tone === "error" ? "alert" : "status"} className={`rounded-xl border px-3 py-2 text-sm ${toneClass}`}>
       {children}
     </p>
   );
@@ -92,7 +92,7 @@ export function FieldScanMark({ confidence }: { confidence: number | undefined }
   const low = confidence < LOW_CONFIDENCE_THRESHOLD;
   return (
     <span
-      className={`text-xs font-medium ${low ? "text-amber-600 dark:text-amber-500" : "text-muted-foreground"}`}
+      className={`whitespace-nowrap text-xs font-medium ${low ? "text-amber-600 dark:text-amber-500" : "text-muted-foreground"}`}
     >
       {low ? t("checkValue") : t("scanned")}
     </span>

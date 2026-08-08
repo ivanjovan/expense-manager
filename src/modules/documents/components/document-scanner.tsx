@@ -152,9 +152,9 @@ export function DocumentScanner({ documentType, onExtracted, disabled }: Documen
   const busy = status !== "idle" || disabled;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/30 p-3 sm:p-4">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-medium">{t("title")}</p>
           <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
@@ -171,8 +171,15 @@ export function DocumentScanner({ documentType, onExtracted, disabled }: Documen
         )}
       </div>
 
+      {/* Both share the row evenly rather than sizing to their text, so
+          neither becomes a small target on a phone at a petrol pump. */}
       <div className="flex flex-wrap gap-2">
-        <Button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy}>
+        <Button
+          type="button"
+          onClick={() => cameraInputRef.current?.click()}
+          disabled={busy}
+          className="flex-1 basis-32"
+        >
           {status === "uploading" ? t("reading") : status === "preparing" ? t("preparing") : t("takePhoto")}
         </Button>
         <Button
@@ -180,6 +187,7 @@ export function DocumentScanner({ documentType, onExtracted, disabled }: Documen
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
           disabled={busy}
+          className="flex-1 basis-32"
         >
           {t("chooseFile")}
         </Button>

@@ -193,9 +193,9 @@ export function FuelEntryForm({
         <input type="hidden" name="derivedField" value={derivedField} />
         <input type="hidden" name="inputMethod" value={scan ? "OCR" : "MANUAL"} />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="date">{t("date")}</Label>
               <FieldScanMark confidence={scan?.confidence.date} />
             </div>
@@ -244,9 +244,9 @@ export function FuelEntryForm({
           </Select>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="fuelPrice">{t("fuelPrice")}</Label>
               <FieldScanMark confidence={scan?.confidence.fuelPrice} />
             </div>
@@ -266,7 +266,7 @@ export function FuelEntryForm({
             <FieldError message={fieldErrors?.fuelPrice} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="liters">{t("liters")}</Label>
               <FieldScanMark confidence={scan?.confidence.liters} />
             </div>
@@ -286,7 +286,7 @@ export function FuelEntryForm({
             <FieldError message={fieldErrors?.liters} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="totalPaid">{t("totalPaid")}</Label>
               <FieldScanMark confidence={scan?.confidence.totalPaid} />
             </div>
@@ -324,12 +324,13 @@ export function FuelEntryForm({
             </label>
           </div>
         ) : (
-          <div className="flex flex-col gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3">
+          <div className="flex flex-col gap-2 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 sm:p-4">
             <p className="text-sm font-medium">{td("fullTankQuestion")}</p>
             <p className="text-xs text-muted-foreground">{td("fullTankWhy")}</p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
+                className="flex-1 basis-32"
                 onClick={() => {
                   setIsFullTank(true);
                   setIsFullTankAnswered(true);
@@ -340,6 +341,7 @@ export function FuelEntryForm({
               <Button
                 type="button"
                 variant="outline"
+                className="flex-1 basis-32"
                 onClick={() => {
                   setIsFullTank(false);
                   setIsFullTankAnswered(true);
@@ -351,9 +353,9 @@ export function FuelEntryForm({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="station">{t("station")}</Label>
               <FieldScanMark confidence={scan?.confidence.station} />
             </div>
@@ -387,11 +389,11 @@ export function FuelEntryForm({
           </p>
         )}
 
-        <div className="flex gap-2">
-          <Button type="submit" disabled={submitDisabled}>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button type="submit" disabled={submitDisabled} className="w-full sm:w-auto">
             {t("submit")}
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.back()}>
+          <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
             {tc("cancel")}
           </Button>
         </div>

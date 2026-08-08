@@ -56,7 +56,7 @@ export function AccountForm({ mode, accountId, defaultValues }: AccountFormProps
         <Input id="provider" name="provider" defaultValue={defaultValues?.provider ?? ""} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="accountNumber">{t("accountNumber")}</Label>
           <Input id="accountNumber" name="accountNumber" defaultValue={defaultValues?.accountNumber ?? ""} />
@@ -73,11 +73,11 @@ export function AccountForm({ mode, accountId, defaultValues }: AccountFormProps
         </p>
       )}
 
-      <div className="flex gap-2">
-        <Button type="submit" disabled={isPending}>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
           {t("submit")}
         </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+        <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
           {tc("cancel")}
         </Button>
       </div>

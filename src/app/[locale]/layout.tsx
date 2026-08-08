@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
@@ -21,6 +21,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Expense Manager",
   description: "Personal expense & utility tracker",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // Required for env(safe-area-inset-*) to report anything but 0, which the
+  // bottom tab bar needs to clear the iPhone home indicator.
+  viewportFit: "cover",
 };
 
 export default async function LocaleLayout({

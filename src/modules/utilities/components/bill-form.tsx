@@ -158,7 +158,7 @@ export function BillForm({
           {scan.missingReadings && (
             // Said before the user reviews the rest, rather than as four
             // field errors after they press save.
-            <p role="status" className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+            <p role="status" className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
               {td("readingsNeeded")}
             </p>
           )}
@@ -169,9 +169,9 @@ export function BillForm({
         <input type="hidden" name="accountId" value={accountId} />
         <input type="hidden" name="inputMethod" value={scan ? "OCR" : "MANUAL"} />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="periodFrom">{t("periodFrom")}</Label>
               <FieldScanMark confidence={scan?.confidence.periodFrom} />
             </div>
@@ -186,7 +186,7 @@ export function BillForm({
             <FieldError message={fieldErrors?.periodFrom} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="periodTo">{t("periodTo")}</Label>
               <FieldScanMark confidence={scan?.confidence.periodTo} />
             </div>
@@ -202,9 +202,9 @@ export function BillForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="issueDate">{t("issueDate")}</Label>
               <FieldScanMark confidence={scan?.confidence.issueDate} />
             </div>
@@ -217,7 +217,7 @@ export function BillForm({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="dueDate">{t("dueDate")}</Label>
               <FieldScanMark confidence={scan?.confidence.dueDate} />
             </div>
@@ -233,9 +233,9 @@ export function BillForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="amount">{t("amount")}</Label>
               <FieldScanMark confidence={scan?.confidence.amount} />
             </div>
@@ -264,13 +264,13 @@ export function BillForm({
         </div>
 
         {tracksReadings && (
-          <div className="flex flex-col gap-3 rounded-md border border-border p-3">
+          <div className="flex flex-col gap-3 rounded-2xl border border-border p-3 sm:p-4">
             <p className="text-sm font-medium">{t("readingsTitle")}</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <fieldset className="flex flex-col gap-2">
                 <legend className="text-xs font-medium text-muted-foreground">{t("highBand")}</legend>
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <Label htmlFor="previousReadingHigh">{t("previousReading")}</Label>
                     <FieldScanMark confidence={scan?.confidence.previousReadingHigh} />
                   </div>
@@ -288,7 +288,7 @@ export function BillForm({
                   <FieldError message={fieldErrors?.previousReadingHigh} />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <Label htmlFor="currentReadingHigh">{t("currentReading")}</Label>
                     <FieldScanMark confidence={scan?.confidence.currentReadingHigh} />
                   </div>
@@ -314,7 +314,7 @@ export function BillForm({
               <fieldset className="flex flex-col gap-2">
                 <legend className="text-xs font-medium text-muted-foreground">{t("lowBand")}</legend>
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <Label htmlFor="previousReadingLow">{t("previousReading")}</Label>
                     <FieldScanMark confidence={scan?.confidence.previousReadingLow} />
                   </div>
@@ -332,7 +332,7 @@ export function BillForm({
                   <FieldError message={fieldErrors?.previousReadingLow} />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <Label htmlFor="currentReadingLow">{t("currentReading")}</Label>
                     <FieldScanMark confidence={scan?.confidence.currentReadingLow} />
                   </div>
@@ -358,9 +358,9 @@ export function BillForm({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Label htmlFor="invoiceNumber">{t("invoiceNumber")}</Label>
               <FieldScanMark confidence={scan?.confidence.invoiceNumber} />
             </div>
@@ -384,11 +384,11 @@ export function BillForm({
           </p>
         )}
 
-        <div className="flex gap-2">
-          <Button type="submit" disabled={submitDisabled}>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button type="submit" disabled={submitDisabled} className="w-full sm:w-auto">
             {t("submit")}
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.back()}>
+          <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
             {tc("cancel")}
           </Button>
         </div>

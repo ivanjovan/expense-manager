@@ -7,7 +7,8 @@
     "vehicles": "Vozila",
     "utilities": "Režije",
     "settings": "Podešavanja",
-    "signOut": "Odjava"
+    "signOut": "Odjava",
+    "primary": "Glavna navigacija"
   },
   "theme": {
     "label": "Tema",
