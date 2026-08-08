@@ -1,0 +1,90 @@
+name: Nightly backup
+
+# SRS §19: the household must be able to recover its data without depending
+# on this app, this repo, or the database provider still existing. Neon's
+# own point-in-time restore protects against a bad delete inside its
+# retention window; it does not protect against losing the Neon account.
+#
+# workflow_dispatch is deliberate — a backup you cannot trigger by hand is
+# a backup you cannot test, and §19 is explicit that an untested backup is
+# not a backup.
+
+on:
+  schedule:
+    # 02:15 UTC. Off the hour because GitHub's scheduler is busiest exactly
+    # on it, and delayed runs are common there.
+    - cron: "15 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    # A hung dump should not burn the whole job allowance.
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install a matching pg_dump
+        # The runner's bundled client can be older than the server, and
+        # pg_dump refuses to dump a newer server than itself. Installing
+        # from PGDG pins a client new enough for Neon.
+        run: |
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          pg_dump --version
+
+      - name: Dump and encrypt
+        env:
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          chmod +x scripts/backup-remote.sh
+          ./scripts/backup-remote.sh "${GITHUB_WORKSPACE}/backups"
+
+      - name: Configure rclone
+        # rclone with *your* OAuth token, not a service account: a service
+        # account has no Drive storage of its own, and files it creates in a
+        # shared folder fail with storageQuotaExceeded on a personal Google
+        # account. Uploading as you makes you the owner, which is also what
+        # you want if this repo ever disappears.
+        env:
+          RCLONE_CONFIG_BASE64: ${{ secrets.RCLONE_CONFIG_BASE64 }}
+        run: |
+          if [ -z "$RCLONE_CONFIG_BASE64" ]; then
+            echo "::error::RCLONE_CONFIG_BASE64 is not set — see docs/backups.md"
+            exit 1
+          fi
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+          mkdir -p ~/.config/rclone
+          echo "$RCLONE_CONFIG_BASE64" | base64 -d > ~/.config/rclone/rclone.conf
+          chmod 600 ~/.config/rclone/rclone.conf
+
+      - name: Upload to Google Drive
+        env:
+          REMOTE: ${{ secrets.RCLONE_REMOTE }}
+        run: |
+          rclone copy "${GITHUB_WORKSPACE}/backups" "${REMOTE}" \
+            --include "*.dump.gpg" --progress --stats-one-line
+
+      - name: Prune backups older than 90 days
+        env:
+          REMOTE: ${{ secrets.RCLONE_REMOTE }}
+        run: |
+          # Runs only after a successful upload, so a failed backup never
+          # deletes the last good one.
+          rclone delete "${REMOTE}" --include "*.dump.gpg" --min-age 90d
+          echo "Remaining backups:"
+          rclone lsl "${REMOTE}" --include "*.dump.gpg" | tail -5
+
+      - name: Report
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "### Backup succeeded" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Backup FAILED — the household has no fresh copy today" >> "$GITHUB_STEP_SUMMARY"
+          fi
