@@ -297,7 +297,7 @@
       "readPages": "{count, plural, one {Pročitaj # stranu} few {Pročitaj # strane} other {Pročitaj # strana}}",
       "pageAlt": "Strana {number}",
       "removePage": "Ukloni stranu {number}",
-      "onePageOnly": "Pročitana je samo jedna strana. Račun za struju obično zahteva obe — troškovi i prethodni dug su na drugoj strani.",
+      "onePageOnly": "Pročitana je samo jedna strana, pa nedostaju stanja brojila — ona su na drugoj strani računa. Unesi ih ispod ili skeniraj i tu stranu.",
       "chargesDoNotReconcile": "Iznosi na računu se ne slažu: ovaj period plus prethodni dug ne odgovara ukupnom dugovanju. Proveri sva tri sa papirom pre čuvanja."
     },
     "errors": {

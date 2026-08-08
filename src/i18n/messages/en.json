@@ -297,7 +297,7 @@
       "readPages": "{count, plural, one {Read # page} other {Read # pages}}",
       "pageAlt": "Page {number}",
       "removePage": "Remove page {number}",
-      "onePageOnly": "Only one page was read. An electricity bill normally needs both — the charges and any carried-over debt are on the other page.",
+      "onePageOnly": "Only one page was read, so the meter readings are missing — they are on the bill's other page. Enter them below, or scan that page too.",
       "chargesDoNotReconcile": "The bill's own figures don't add up: this period plus previous debt doesn't match the total due. Check all three against the paper before saving."
     },
     "errors": {
