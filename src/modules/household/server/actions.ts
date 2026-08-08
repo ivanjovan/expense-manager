@@ -3,7 +3,7 @@
 import { prisma } from "@/shared/lib/prisma";
 import { hashPassword } from "@/shared/lib/passwords";
 import { generateToken, hashToken, INVITATION_TTL_MS } from "@/shared/lib/tokens";
-import { requireOwner } from "@/shared/lib/session";
+import { ownerOrError } from "@/shared/lib/action-guard";
 import { ActionResult, fieldErrorsFromZod } from "@/shared/types/action-result";
 import {
   registerHouseholdSchema,
@@ -65,7 +65,9 @@ export async function registerHousehold(
 export async function inviteMember(
   input: unknown
 ): Promise<ActionResult<{ token: string; email: string }>> {
-  const owner = await requireOwner();
+  const session = await ownerOrError();
+  if (!session.ok) return session;
+  const owner = session.user;
 
   const parsed = inviteMemberSchema.safeParse(input);
   if (!parsed.success) {

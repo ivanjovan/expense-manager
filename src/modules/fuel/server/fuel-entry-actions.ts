@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/shared/lib/prisma";
-import { requireCurrentUser } from "@/shared/lib/session";
+import { currentUserOrError } from "@/shared/lib/action-guard";
 import { ActionResult, fieldErrorsFromZod } from "@/shared/types/action-result";
 import { fuelEntrySchema } from "../schemas/fuel-entry";
 import { hasFuelValueDiscrepancy } from "../domain/derivation";
@@ -22,7 +22,9 @@ export async function createFuelEntry(
   _prevState: ActionResult<{ id: string; warning?: string }> | undefined,
   formData: FormData
 ): Promise<ActionResult<{ id: string; warning?: string }>> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const parsed = fuelEntrySchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return {
@@ -37,7 +39,7 @@ export async function createFuelEntry(
     where: { id: input.vehicleId, householdId: user.householdId },
   });
   if (!vehicle) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
 
   const currency = await requireHouseholdCurrency(user.householdId);
@@ -79,7 +81,9 @@ export async function updateFuelEntry(
   _prevState: ActionResult<{ id: string; warning?: string }> | undefined,
   formData: FormData
 ): Promise<ActionResult<{ id: string; warning?: string }>> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const parsed = fuelEntrySchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return {
@@ -94,13 +98,13 @@ export async function updateFuelEntry(
     where: { id: entryId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   const vehicle = await prisma.vehicle.findFirst({
     where: { id: input.vehicleId, householdId: user.householdId },
   });
   if (!vehicle) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
 
   const warning =
@@ -120,6 +124,11 @@ export async function updateFuelEntry(
       isFullTank: input.isFullTank,
       missedEntries: input.missedEntries,
       derivedField: input.derivedField,
+      // Re-filling an existing entry from a scan changes how its values got
+      // there, so provenance has to follow the edit — otherwise the question
+      // InputMethod exists to answer ("are scanned entries drifting?") is
+      // answered from stale data.
+      inputMethod: input.inputMethod,
       station: cleanOptional(input.station),
       notes: cleanOptional(input.notes),
     },
@@ -129,12 +138,14 @@ export async function updateFuelEntry(
 }
 
 export async function deleteFuelEntry(entryId: string): Promise<ActionResult> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const existing = await prisma.fuelEntry.findFirst({
     where: { id: entryId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   await prisma.fuelEntry.delete({ where: { id: entryId } });
   return { ok: true, data: undefined };

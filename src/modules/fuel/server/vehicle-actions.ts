@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/shared/lib/prisma";
-import { requireCurrentUser } from "@/shared/lib/session";
+import { currentUserOrError } from "@/shared/lib/action-guard";
 import { ActionResult, fieldErrorsFromZod } from "@/shared/types/action-result";
 import { vehicleSchema } from "../schemas/vehicle";
 
@@ -13,7 +13,9 @@ export async function createVehicle(
   _prevState: ActionResult<{ id: string }> | undefined,
   formData: FormData
 ): Promise<ActionResult<{ id: string }>> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const parsed = vehicleSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return {
@@ -45,7 +47,9 @@ export async function updateVehicle(
   _prevState: ActionResult<{ id: string }> | undefined,
   formData: FormData
 ): Promise<ActionResult<{ id: string }>> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const parsed = vehicleSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return {
@@ -60,7 +64,7 @@ export async function updateVehicle(
     where: { id: vehicleId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
 
   await prisma.vehicle.update({
@@ -80,12 +84,14 @@ export async function updateVehicle(
 }
 
 export async function archiveVehicle(vehicleId: string): Promise<ActionResult> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const existing = await prisma.vehicle.findFirst({
     where: { id: vehicleId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   await prisma.vehicle.update({
     where: { id: vehicleId },
@@ -95,12 +101,14 @@ export async function archiveVehicle(vehicleId: string): Promise<ActionResult> {
 }
 
 export async function unarchiveVehicle(vehicleId: string): Promise<ActionResult> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const existing = await prisma.vehicle.findFirst({
     where: { id: vehicleId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   await prisma.vehicle.update({
     where: { id: vehicleId },
@@ -113,13 +121,15 @@ export async function unarchiveVehicle(vehicleId: string): Promise<ActionResult>
  * A vehicle with history is archived instead (see archiveVehicle above);
  * a confirmed "delete vehicle and all N entries" flow is a later addition. */
 export async function deleteVehicle(vehicleId: string): Promise<ActionResult> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const existing = await prisma.vehicle.findFirst({
     where: { id: vehicleId, householdId: user.householdId },
     include: { _count: { select: { fuelEntries: true } } },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   if (existing._count.fuelEntries > 0) {
     return { ok: false, error: "fuel.vehicle.deleteBlocked" };

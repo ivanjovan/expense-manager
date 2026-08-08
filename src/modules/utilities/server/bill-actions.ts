@@ -2,7 +2,8 @@
 
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/shared/lib/prisma";
-import { requireCurrentUser } from "@/shared/lib/session";
+import { currentUserOrError } from "@/shared/lib/action-guard";
+import { todayAsCalendarDate } from "@/shared/lib/dates";
 import { ActionResult, fieldErrorsFromZod } from "@/shared/types/action-result";
 import { utilityBillSchema, type UtilityBillInput } from "../schemas/utility-bill";
 import { computeReadingConsumption } from "../domain/reading-consumption";
@@ -88,7 +89,9 @@ export async function createUtilityBill(
   _prevState: ActionResult<{ id: string }> | undefined,
   formData: FormData
 ): Promise<ActionResult<{ id: string }>> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const parsed = utilityBillSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return {
@@ -103,7 +106,7 @@ export async function createUtilityBill(
     where: { id: input.accountId, householdId: user.householdId },
   });
   if (!account) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
 
   let readings: ReadingsResult["readings"] = [];
@@ -157,7 +160,9 @@ export async function updateUtilityBill(
   _prevState: ActionResult<{ id: string }> | undefined,
   formData: FormData
 ): Promise<ActionResult<{ id: string }>> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const parsed = utilityBillSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return {
@@ -172,13 +177,13 @@ export async function updateUtilityBill(
     where: { id: billId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   const account = await prisma.utilityAccount.findFirst({
     where: { id: input.accountId, householdId: user.householdId },
   });
   if (!account) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
 
   let readings: ReadingsResult["readings"] = [];
@@ -206,6 +211,11 @@ export async function updateUtilityBill(
           paymentDate: input.paymentDate,
           invoiceNumber: cleanOptional(input.invoiceNumber),
           notes: cleanOptional(input.notes),
+          // Re-filling an existing bill from a scan changes how its values
+          // got there, so provenance has to follow the edit — otherwise the
+          // question InputMethod exists to answer ("are scanned entries
+          // drifting?") is answered from stale data.
+          inputMethod: input.inputMethod,
         },
       });
       await tx.utilityBillReading.deleteMany({ where: { billId } });
@@ -225,12 +235,14 @@ export async function updateUtilityBill(
 }
 
 export async function deleteUtilityBill(billId: string): Promise<ActionResult> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const existing = await prisma.utilityBill.findFirst({
     where: { id: billId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   await prisma.utilityBill.delete({ where: { id: billId } });
   return { ok: true, data: undefined };
@@ -239,16 +251,20 @@ export async function deleteUtilityBill(billId: string): Promise<ActionResult> {
 /** Marks a bill paid today, or reopens it — a one-click affordance next to
  * the derived status badge rather than a full edit-form round trip. */
 export async function toggleBillPaid(billId: string, markPaid: boolean): Promise<ActionResult> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const existing = await prisma.utilityBill.findFirst({
     where: { id: billId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   await prisma.utilityBill.update({
     where: { id: billId },
-    data: { paymentDate: markPaid ? new Date() : null },
+    // `paymentDate` is a `@db.Date`; storing a raw instant makes the day it
+    // lands on depend on the server's clock offset at the moment of the click.
+    data: { paymentDate: markPaid ? todayAsCalendarDate() : null },
   });
   return { ok: true, data: undefined };
 }

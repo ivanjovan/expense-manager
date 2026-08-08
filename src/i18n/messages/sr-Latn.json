@@ -31,7 +31,8 @@
       "noAccount": "Nemate nalog?",
       "registerLink": "Registrujte se",
       "invalidCredentials": "Pogrešan email ili lozinka.",
-      "accountLocked": "Previše neuspešnih pokušaja. Pokušajte ponovo za nekoliko minuta."
+      "accountLocked": "Previše neuspešnih pokušaja. Pokušajte ponovo za nekoliko minuta.",
+      "tooManyAttempts": "Previše pokušaja prijave. Sačekajte nekoliko minuta pa pokušajte ponovo."
     },
     "register": {
       "title": "Kreirajte vaše domaćinstvo",
@@ -105,7 +106,16 @@
     "cancel": "Otkaži",
     "back": "Nazad",
     "save": "Sačuvaj",
-    "loading": "Učitavanje…"
+    "loading": "Učitavanje…",
+    "notFound": "Ta stavka više ne postoji ili vam nije dostupna.",
+    "sessionExpired": "Vaša sesija je istekla — prijavite se ponovo.",
+    "forbidden": "Nemate dozvolu za ovu radnju.",
+    "errorTitle": "Nešto nije u redu",
+    "errorBody": "Došlo je do neočekivane greške. Pokušajte ponovo.",
+    "tryAgain": "Pokušaj ponovo",
+    "backToDashboard": "Nazad na kontrolnu tablu",
+    "notFoundTitle": "Stranica nije pronađena",
+    "notFoundBody": "Stranica koju tražite ne postoji ili je premeštena."
   },
   "fuel": {
     "vehicles": {
@@ -309,7 +319,8 @@
       "provider_failed": "Dokument nije mogao da se pročita. Pokušaj ponovo ili unesi vrednosti ručno.",
       "unreadable_document": "Slika nije mogla da se pročita. Pokušaj sa oštrijom i bolje osvetljenom slikom.",
       "network": "Server nije dostupan. Proveri vezu i pokušaj ponovo.",
-      "too_many_pages": "Previše strana. Skeniraj najviše 4 odjednom."
+      "too_many_pages": "Previše strana. Skeniraj najviše 4 odjednom.",
+      "rate_limited": "Previše skeniranja u kratkom vremenu. Sačekajte malo pa pokušajte ponovo."
     },
     "notices": {
       "currencyMismatch": "Ovaj dokument je u {documentCurrency}, a tvoje domaćinstvo vodi sve u {householdCurrency}. Čuvanje je blokirano jer bi zbirovi bili pogrešni. Unesi ručno ako je iznos zaista u {householdCurrency}.",

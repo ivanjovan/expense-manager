@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/shared/lib/prisma";
-import { requireCurrentUser } from "@/shared/lib/session";
+import { currentUserOrError } from "@/shared/lib/action-guard";
 import { ActionResult, fieldErrorsFromZod } from "@/shared/types/action-result";
 import { utilityAccountSchema } from "../schemas/utility-account";
 
@@ -13,7 +13,9 @@ export async function createUtilityAccount(
   _prevState: ActionResult<{ id: string }> | undefined,
   formData: FormData
 ): Promise<ActionResult<{ id: string }>> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const parsed = utilityAccountSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return {
@@ -45,7 +47,9 @@ export async function updateUtilityAccount(
   _prevState: ActionResult<{ id: string }> | undefined,
   formData: FormData
 ): Promise<ActionResult<{ id: string }>> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const parsed = utilityAccountSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return {
@@ -60,7 +64,7 @@ export async function updateUtilityAccount(
     where: { id: accountId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
 
   await prisma.utilityAccount.update({
@@ -77,12 +81,14 @@ export async function updateUtilityAccount(
 }
 
 export async function archiveUtilityAccount(accountId: string): Promise<ActionResult> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const existing = await prisma.utilityAccount.findFirst({
     where: { id: accountId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   await prisma.utilityAccount.update({
     where: { id: accountId },
@@ -92,12 +98,14 @@ export async function archiveUtilityAccount(accountId: string): Promise<ActionRe
 }
 
 export async function unarchiveUtilityAccount(accountId: string): Promise<ActionResult> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const existing = await prisma.utilityAccount.findFirst({
     where: { id: accountId, householdId: user.householdId },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   await prisma.utilityAccount.update({
     where: { id: accountId },
@@ -109,13 +117,15 @@ export async function unarchiveUtilityAccount(accountId: string): Promise<Action
 /** Hard delete only when the account has zero bills — mirrors
  * deleteVehicle in the fuel module (SRS §10.1's rule, applied here too). */
 export async function deleteUtilityAccount(accountId: string): Promise<ActionResult> {
-  const user = await requireCurrentUser();
+  const session = await currentUserOrError();
+  if (!session.ok) return session;
+  const user = session.user;
   const existing = await prisma.utilityAccount.findFirst({
     where: { id: accountId, householdId: user.householdId },
     include: { _count: { select: { bills: true } } },
   });
   if (!existing) {
-    return { ok: false, error: "validation.invalidToken" };
+    return { ok: false, error: "common.notFound" };
   }
   if (existing._count.bills > 0) {
     return { ok: false, error: "utilities.account.deleteBlocked" };

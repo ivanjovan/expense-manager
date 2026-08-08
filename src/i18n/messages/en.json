@@ -31,7 +31,8 @@
       "noAccount": "Don't have an account?",
       "registerLink": "Register",
       "invalidCredentials": "Incorrect email or password.",
-      "accountLocked": "Too many failed attempts. Try again in a few minutes."
+      "accountLocked": "Too many failed attempts. Try again in a few minutes.",
+      "tooManyAttempts": "Too many sign-in attempts. Wait a few minutes and try again."
     },
     "register": {
       "title": "Create your household",
@@ -105,7 +106,16 @@
     "cancel": "Cancel",
     "back": "Back",
     "save": "Save",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "notFound": "That item no longer exists, or isn't available to you.",
+    "sessionExpired": "Your session has expired — please sign in again.",
+    "forbidden": "You don't have permission to do that.",
+    "errorTitle": "Something went wrong",
+    "errorBody": "An unexpected error occurred. Trying again may fix it.",
+    "tryAgain": "Try again",
+    "backToDashboard": "Back to dashboard",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you're looking for doesn't exist or has moved."
   },
   "fuel": {
     "vehicles": {
@@ -309,7 +319,8 @@
       "provider_failed": "Couldn't read the document. Try again, or enter the values manually.",
       "unreadable_document": "The image couldn't be read. Try a sharper, better-lit photo.",
       "network": "Couldn't reach the server. Check your connection and try again.",
-      "too_many_pages": "Too many pages. Scan up to 4 at a time."
+      "too_many_pages": "Too many pages. Scan up to 4 at a time.",
+      "rate_limited": "Too many scans in a short time. Wait a moment and try again."
     },
     "notices": {
       "currencyMismatch": "This document is in {documentCurrency}, but your household records everything in {householdCurrency}. Saving is blocked because totals would be wrong. Enter it manually if the amount is genuinely in {householdCurrency}.",
