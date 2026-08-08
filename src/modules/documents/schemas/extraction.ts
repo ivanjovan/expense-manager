@@ -137,6 +137,7 @@ export const API_ERROR_CODES = [
   "provider_not_configured",
   "provider_failed",
   "unreadable_document",
+  "rate_limited",
 ] as const;
 export type ApiErrorCode = (typeof API_ERROR_CODES)[number];
 

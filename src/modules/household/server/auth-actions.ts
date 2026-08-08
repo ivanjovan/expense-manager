@@ -7,13 +7,32 @@
  * don't belong in the reusable, easily-unit-tested mutations themselves.
  */
 import { AuthError } from "next-auth";
+import { headers } from "next/headers";
 import { signIn, AccountLockedError } from "@/auth";
+import { hit } from "@/shared/lib/rate-limit";
 import { ActionResult, fieldErrorsFromZod } from "@/shared/types/action-result";
 import { loginSchema } from "../schemas/auth";
 import { registerHousehold, acceptInvite } from "./actions";
 
 function formDataToObject(formData: FormData): Record<string, unknown> {
   return Object.fromEntries(formData.entries());
+}
+
+/**
+ * Complements the per-account lockout in auth.ts, which caps guesses against
+ * one email but does nothing to slow an attacker sweeping many. Keyed by
+ * origin instead, so the two together bound both shapes of guessing.
+ */
+const LOGIN_ATTEMPT_LIMIT = 10;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+
+async function requestOrigin(): Promise<string> {
+  const headerList = await headers();
+  // x-forwarded-for is a client-settable header anywhere it isn't rewritten
+  // by a trusted proxy. Behind Vercel it is, which is the deployment this
+  // targets; the fallback simply degrades to one shared bucket.
+  const forwarded = headerList.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || headerList.get("x-real-ip") || "unknown";
 }
 
 export async function loginAction(
@@ -28,6 +47,11 @@ export async function loginAction(
       error: "validation.required",
       fieldErrors: fieldErrorsFromZod(parsed.error),
     };
+  }
+
+  const budget = hit(`login:${await requestOrigin()}`, LOGIN_ATTEMPT_LIMIT, LOGIN_WINDOW_MS);
+  if (!budget.allowed) {
+    return { ok: false, error: "auth.login.tooManyAttempts" };
   }
 
   try {

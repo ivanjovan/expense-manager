@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireCurrentUser, UnauthenticatedError } from "@/shared/lib/session";
+import { hitAll } from "@/shared/lib/rate-limit";
 import {
   extractDocument,
   isSupportedImageType,
@@ -26,18 +27,40 @@ import type { ApiErrorCode, DocumentType } from "@/modules/documents/schemas/ext
 /** Codes the client has a specific message for — defined alongside the
  * contract so the route and the UI can't drift apart. Anything unexpected
  * collapses to `provider_failed` rather than leaking internals. */
-function errorResponse(code: ApiErrorCode, status: number) {
-  return NextResponse.json({ error: code }, { status });
+function errorResponse(code: ApiErrorCode, status: number, headers?: HeadersInit) {
+  return NextResponse.json({ error: code }, { status, headers });
 }
 
+/**
+ * Every call here is a paid vision request carrying up to 20 MB of images,
+ * and authentication alone doesn't bound the spend — a stuck client or a
+ * retry loop is enough. The short window stops a runaway; the daily one caps
+ * what a single member can cost in a day. Both are generous against real use:
+ * a household files a handful of bills a month.
+ */
+const EXTRACTION_LIMITS = [
+  { name: "extract-burst", limit: 10, windowMs: 5 * 60 * 1000 },
+  { name: "extract-daily", limit: 60, windowMs: 24 * 60 * 60 * 1000 },
+];
+
 export async function POST(request: Request) {
+  let userId: string;
   try {
-    await requireCurrentUser();
+    userId = (await requireCurrentUser()).id;
   } catch (error) {
     if (error instanceof UnauthenticatedError) {
       return errorResponse("unauthenticated", 401);
     }
     throw error;
+  }
+
+  // Keyed by user, not IP: household members legitimately share a home
+  // connection, so an IP-keyed budget would be spent by whoever scanned first.
+  const budget = hitAll(userId, EXTRACTION_LIMITS);
+  if (!budget.allowed) {
+    return errorResponse("rate_limited", 429, {
+      "Retry-After": String(budget.retryAfterSeconds),
+    });
   }
 
   let formData: FormData;
