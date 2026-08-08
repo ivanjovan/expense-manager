@@ -5,6 +5,7 @@ import { buttonVariants } from "@/shared/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/components/ui/card";
 import { getUtilityAccount, getUtilityAccountStats } from "@/modules/utilities/server/queries";
 import { getHousehold } from "@/modules/household/server/queries";
+import { ExportButton } from "@/modules/export/components/export-button";
 import { UtilityStats } from "@/modules/utilities/components/utility-stats";
 import { BillsTable, type UtilityBillRow } from "@/modules/utilities/components/bills-table";
 import {
@@ -82,7 +83,8 @@ export default async function UtilityAccountDetailPage({
             {account.meterNumber ? ` · ${t("meterNumber")}: ${account.meterNumber}` : ""}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <ExportButton scope="account" id={accountId} labelKey="accountButton" />
           <Link href={`/utilities/${accountId}/edit`} className={buttonVariants({ variant: "outline", size: "sm" })}>
             {tb("editButton")}
           </Link>

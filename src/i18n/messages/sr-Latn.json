@@ -320,5 +320,89 @@
       "previousReadingLow": "prethodno stanje niže tarife",
       "currentReadingLow": "trenutno stanje niže tarife"
     }
+  },
+  "export": {
+    "fullTitle": "Izvoz podataka domaćinstva",
+    "fullBody": "Preuzima sve zapise ovog domaćinstva kao Excel radnu svesku — tvoja kopija i tvoj izlaz ako ikada prestaneš da koristiš ovu aplikaciju.",
+    "fullButton": "Izvezi sve (.xlsx)",
+    "vehicleButton": "Izvezi u Excel",
+    "accountButton": "Izvezi u Excel",
+    "preparing": "Priprema…",
+    "ownerOnly": "Samo vlasnik domaćinstva može da izveze sve podatke.",
+    "failed": "Izvoz nije mogao da se napravi. Pokušaj ponovo.",
+    "sheets": {
+      "vehicles": "Vozila",
+      "fuelEntries": "Točenja goriva",
+      "utilityAccounts": "Komunalni računi",
+      "utilityBills": "Računi",
+      "meterReadings": "Stanja brojila"
+    },
+    "columns": {
+      "name": "Naziv",
+      "manufacturer": "Proizvođač",
+      "model": "Model",
+      "licensePlate": "Registarska oznaka",
+      "fuelType": "Vrsta goriva",
+      "initialOdometer": "Početna kilometraža (km)",
+      "notes": "Beleške",
+      "archived": "Arhivirano",
+      "createdAt": "Kreirano",
+      "date": "Datum",
+      "vehicle": "Vozilo",
+      "odometer": "Kilometraža (km)",
+      "liters": "Litri",
+      "fuelPrice": "Cena po litru",
+      "totalPaid": "Ukupno plaćeno",
+      "distanceKm": "Pređeno (km)",
+      "consumptionL100km": "Potrošnja (L/100km)",
+      "costPerKm": "Cena po km",
+      "isFullTank": "Pun rezervoar",
+      "missedEntries": "Preskočena točenja",
+      "station": "Pumpa",
+      "inputMethod": "Način unosa",
+      "addedBy": "Uneo",
+      "utilityType": "Vrsta",
+      "provider": "Dobavljač",
+      "accountNumber": "Broj naloga",
+      "meterNumber": "Broj brojila",
+      "tracksReadings": "Prati stanja",
+      "unit": "Jedinica",
+      "account": "Nalog",
+      "periodFrom": "Period od",
+      "periodTo": "Period do",
+      "issueDate": "Datum izdavanja",
+      "dueDate": "Rok plaćanja",
+      "amount": "Iznos",
+      "paymentStatus": "Status",
+      "paymentDate": "Datum plaćanja",
+      "invoiceNumber": "Broj računa",
+      "band": "Tarifa",
+      "previousReading": "Prethodno stanje",
+      "currentReading": "Trenutno stanje",
+      "consumption": "Potrošnja",
+      "meterRollover": "Prelaz brojila"
+    },
+    "values": {
+      "yes": "Da",
+      "no": "Ne",
+      "manual": "Ručno",
+      "ocr": "Skenirano"
+    },
+    "utilityTypes": {
+      "ELECTRICITY": "Struja",
+      "WATER": "Voda",
+      "GAS": "Gas",
+      "INTERNET": "Internet",
+      "MOBILE": "Mobilni"
+    },
+    "units": {
+      "KWH": "kWh",
+      "M3": "m³"
+    },
+    "bands": {
+      "SINGLE": "Jedinstvena",
+      "HIGH": "Viša",
+      "LOW": "Niža"
+    }
   }
 }

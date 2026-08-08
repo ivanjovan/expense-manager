@@ -13,6 +13,7 @@ import {
   getPendingInvitations,
 } from "@/modules/household/server/queries";
 import { requireCurrentUser } from "@/shared/lib/session";
+import { ExportButton } from "@/modules/export/components/export-button";
 
 export async function generateMetadata() {
   const t = await getTranslations("household.settings");
@@ -20,10 +21,11 @@ export async function generateMetadata() {
 }
 
 export default async function HouseholdSettingsPage() {
-  const [t, tm, currentUser, household, members, invitations] =
+  const [t, tm, tExport, currentUser, household, members, invitations] =
     await Promise.all([
       getTranslations("household.settings"),
       getTranslations("household.members"),
+      getTranslations("export"),
       requireCurrentUser(),
       getHousehold(),
       getHouseholdMembers(),
@@ -86,6 +88,20 @@ export default async function HouseholdSettingsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Owner-only, per the §6 role table. The route enforces it too —
+          this only avoids showing a button that would 403. */}
+      {currentUser.role === "OWNER" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tExport("fullTitle")}</CardTitle>
+            <CardDescription>{tExport("fullBody")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ExportButton scope="household" labelKey="fullButton" variant="default" size="default" />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

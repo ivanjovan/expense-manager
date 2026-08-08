@@ -5,6 +5,7 @@ import { buttonVariants } from "@/shared/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/components/ui/card";
 import { getVehicle, getVehicleStats } from "@/modules/fuel/server/queries";
 import { getHousehold } from "@/modules/household/server/queries";
+import { ExportButton } from "@/modules/export/components/export-button";
 import { FuelStats } from "@/modules/fuel/components/fuel-stats";
 import { FuelEntriesTable, type FuelEntryRow } from "@/modules/fuel/components/fuel-entries-table";
 import {
@@ -80,7 +81,8 @@ export default async function VehicleDetailPage({
             {vehicle.licensePlate ? ` · ${vehicle.licensePlate}` : ""}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <ExportButton scope="vehicle" id={vehicleId} labelKey="vehicleButton" />
           <Link href={`/vehicles/${vehicleId}/edit`} className={buttonVariants({ variant: "outline", size: "sm" })}>
             {tv("editButton")}
           </Link>

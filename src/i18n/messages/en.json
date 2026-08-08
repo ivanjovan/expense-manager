@@ -320,5 +320,89 @@
       "previousReadingLow": "previous low-tariff reading",
       "currentReadingLow": "current low-tariff reading"
     }
+  },
+  "export": {
+    "fullTitle": "Export household data",
+    "fullBody": "Downloads every record this household holds as an Excel workbook — your own copy, and your way out if you ever stop using this app.",
+    "fullButton": "Export everything (.xlsx)",
+    "vehicleButton": "Export to Excel",
+    "accountButton": "Export to Excel",
+    "preparing": "Preparing…",
+    "ownerOnly": "Only the household owner can export all data.",
+    "failed": "The export couldn't be created. Try again.",
+    "sheets": {
+      "vehicles": "Vehicles",
+      "fuelEntries": "Fuel entries",
+      "utilityAccounts": "Utility accounts",
+      "utilityBills": "Utility bills",
+      "meterReadings": "Meter readings"
+    },
+    "columns": {
+      "name": "Name",
+      "manufacturer": "Manufacturer",
+      "model": "Model",
+      "licensePlate": "License plate",
+      "fuelType": "Fuel type",
+      "initialOdometer": "Initial odometer (km)",
+      "notes": "Notes",
+      "archived": "Archived",
+      "createdAt": "Created",
+      "date": "Date",
+      "vehicle": "Vehicle",
+      "odometer": "Odometer (km)",
+      "liters": "Litres",
+      "fuelPrice": "Price per litre",
+      "totalPaid": "Total paid",
+      "distanceKm": "Distance (km)",
+      "consumptionL100km": "Consumption (L/100km)",
+      "costPerKm": "Cost per km",
+      "isFullTank": "Full tank",
+      "missedEntries": "Missed entries",
+      "station": "Station",
+      "inputMethod": "Entered by",
+      "addedBy": "Added by",
+      "utilityType": "Type",
+      "provider": "Provider",
+      "accountNumber": "Account number",
+      "meterNumber": "Meter number",
+      "tracksReadings": "Tracks readings",
+      "unit": "Unit",
+      "account": "Account",
+      "periodFrom": "Period from",
+      "periodTo": "Period to",
+      "issueDate": "Issue date",
+      "dueDate": "Due date",
+      "amount": "Amount",
+      "paymentStatus": "Status",
+      "paymentDate": "Payment date",
+      "invoiceNumber": "Invoice number",
+      "band": "Tariff band",
+      "previousReading": "Previous reading",
+      "currentReading": "Current reading",
+      "consumption": "Consumption",
+      "meterRollover": "Meter rollover"
+    },
+    "values": {
+      "yes": "Yes",
+      "no": "No",
+      "manual": "Manually",
+      "ocr": "Scanned"
+    },
+    "utilityTypes": {
+      "ELECTRICITY": "Electricity",
+      "WATER": "Water",
+      "GAS": "Gas",
+      "INTERNET": "Internet",
+      "MOBILE": "Mobile"
+    },
+    "units": {
+      "KWH": "kWh",
+      "M3": "m³"
+    },
+    "bands": {
+      "SINGLE": "Single",
+      "HIGH": "High",
+      "LOW": "Low"
+    }
   }
 }
