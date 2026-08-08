@@ -12,6 +12,7 @@ import {
   buildResponseSchema,
   parseGeminiExtraction,
 } from "./gemini-mapping";
+import { describeProviderError, providerErrorHint } from "./provider-error";
 
 /**
  * Gemini vision extraction provider.
@@ -88,10 +89,14 @@ export class GeminiDocumentExtractionProvider implements DocumentExtractionProvi
       text = response.text;
     } catch (cause) {
       if (cause instanceof DocumentExtractionError) throw cause;
-      // Deliberately excludes the request and the image (§19).
+      // Carries a redacted description so the failure is diagnosable from
+      // the logs. Excludes the request body and the image (§19), and
+      // scrubs the API key the SDK echoes in the request URL.
+      const description = describeProviderError(cause);
+      const hint = providerErrorHint(description);
       throw new DocumentExtractionError(
         "provider_failed",
-        "Document extraction provider request failed",
+        `Gemini request failed (model ${this.model}): ${description}${hint ? ` — ${hint}` : ""}`,
         cause
       );
     }

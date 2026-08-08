@@ -76,6 +76,15 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof DocumentExtractionError) {
+      // Logged before returning: the client only ever sees a stable code,
+      // so without this the actual cause is lost at the one moment it is
+      // needed. The message is already redacted by the provider.
+      if (error.code !== "provider_not_configured") {
+        console.error("Document extraction failed", {
+          code: error.code,
+          message: error.message,
+        });
+      }
       const status = error.code === "provider_not_configured" ? 503 : 502;
       return errorResponse(error.code, status);
     }
