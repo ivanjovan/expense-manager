@@ -121,9 +121,13 @@ function isValidYmd(year: number, month: number, day: number): boolean {
 export function normalizeCurrency(raw: string | null | undefined): "EUR" | "MKD" | null {
   if (!raw) return null;
   const value = raw.trim().toUpperCase();
-  if (/EUR|€/.test(value)) return "EUR";
-  // "ден"/"DEN" is the denar symbol; MKD is the ISO code.
-  if (/MKD|ДЕН|DEN/.test(value)) return "MKD";
+  // Cyrillic and Latin forms are listed separately on purpose: "МКД" and
+  // "MKD" look identical but share no codepoints, and a Macedonian bill
+  // prints the Cyrillic one. Matching only the Latin form silently drops
+  // the currency on exactly the documents this app is built for.
+  if (/EUR|ЕУР|€/.test(value)) return "EUR";
+  // "ден"/"ДЕН" is the denar symbol; MKD is the ISO code.
+  if (/MKD|МКД|ДЕН|DEN/.test(value)) return "MKD";
   return null;
 }
 

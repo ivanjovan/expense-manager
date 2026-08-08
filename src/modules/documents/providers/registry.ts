@@ -1,6 +1,7 @@
 import "server-only";
 import { env } from "@/shared/lib/env";
 import { ClaudeDocumentExtractionProvider } from "./claude-provider";
+import { GeminiDocumentExtractionProvider } from "./gemini-provider";
 import { MockDocumentExtractionProvider } from "./mock-provider";
 import { DocumentExtractionError, type DocumentExtractionProvider } from "./types";
 
@@ -14,6 +15,17 @@ import { DocumentExtractionError, type DocumentExtractionProvider } from "./type
  */
 
 let cached: DocumentExtractionProvider | null = null;
+
+function requireApiKey(): string {
+  const apiKey = env.DOCUMENT_EXTRACTION_API_KEY;
+  if (!apiKey) {
+    throw new DocumentExtractionError(
+      "provider_not_configured",
+      "DOCUMENT_EXTRACTION_API_KEY is not set"
+    );
+  }
+  return apiKey;
+}
 
 /** Whether scanning can be offered at all. The UI hides its entry points
  * when this is false rather than showing a button that always fails. */
@@ -31,15 +43,13 @@ export function getDocumentExtractionProvider(): DocumentExtractionProvider {
       cached = new MockDocumentExtractionProvider();
       return cached;
 
+    case "gemini": {
+      cached = new GeminiDocumentExtractionProvider(requireApiKey(), env.DOCUMENT_EXTRACTION_MODEL);
+      return cached;
+    }
+
     case "claude": {
-      const apiKey = env.DOCUMENT_EXTRACTION_API_KEY;
-      if (!apiKey) {
-        throw new DocumentExtractionError(
-          "provider_not_configured",
-          "DOCUMENT_EXTRACTION_API_KEY is not set"
-        );
-      }
-      cached = new ClaudeDocumentExtractionProvider(apiKey);
+      cached = new ClaudeDocumentExtractionProvider(requireApiKey());
       return cached;
     }
 

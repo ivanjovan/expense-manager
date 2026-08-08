@@ -118,6 +118,18 @@ describe("normalizeCurrency", () => {
   });
 });
 
+  it("recognizes Cyrillic currency codes", () => {
+    // "МКД" and "MKD" render identically but share no codepoints; a
+    // Macedonian bill prints the Cyrillic form.
+    expect(normalizeCurrency("МКД")).toBe("MKD");
+    expect(normalizeCurrency("ЕУР")).toBe("EUR");
+  });
+
+  it("still recognizes the Latin forms", () => {
+    expect(normalizeCurrency("MKD")).toBe("MKD");
+    expect(normalizeCurrency("EUR")).toBe("EUR");
+  });
+
 describe("normalizeConfidence", () => {
   it("passes 0..1 fractions through", () => {
     expect(normalizeConfidence(0.98)).toBeCloseTo(0.98, 6);

@@ -22,8 +22,12 @@ const envSchema = z.object({
   // entry points are simply hidden when no key is configured).
   // "mock" returns fixtures and needs no key; the review UI labels every
   // result it produces as sample data.
-  DOCUMENT_EXTRACTION_PROVIDER: z.enum(["claude", "mock"]).default("claude"),
+  DOCUMENT_EXTRACTION_PROVIDER: z.enum(["gemini", "claude", "mock"]).default("mock"),
   DOCUMENT_EXTRACTION_API_KEY: z.string().optional(),
+  /** Overrides the provider's default model. Model IDs get retired on a
+   * schedule this repo can't track, so that becomes an env change rather
+   * than a deploy. */
+  DOCUMENT_EXTRACTION_MODEL: z.string().optional(),
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
