@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/shared/lib/prisma";
 import { requireCurrentUser } from "@/shared/lib/session";
 import { derivePaymentStatus } from "../domain/payment-status";
-import { groupBillsByYear } from "../domain/billing-period";
+import { groupBillsByMonth, groupBillsByYear } from "../domain/billing-period";
 
 export async function getUtilityAccounts(options: { includeArchived?: boolean } = {}) {
   const user = await requireCurrentUser();
@@ -66,7 +66,18 @@ export async function getUtilityAccountStats(accountId: string) {
   const amounts = bills.map((b) => Number(b.amount));
   const highestBill = amounts.length > 0 ? Math.max(...amounts) : null;
   const lowestBill = amounts.length > 0 ? Math.min(...amounts) : null;
-  const averageMonthlyBill = amounts.length > 0 ? amounts.reduce((a, b) => a + b, 0) / amounts.length : null;
+
+  // Averaged over calendar months, not over bills. Those coincide only while
+  // every bill covers exactly one month; a corrected or off-cycle bill would
+  // otherwise drag the "monthly" figure down by splitting one month's spend
+  // across two rows.
+  const monthlyTotals = groupBillsByMonth(
+    bills.map((b) => ({ periodFrom: b.periodFrom, amount: Number(b.amount), kwh: billKwh(b) }))
+  );
+  const averageMonthlyBill =
+    monthlyTotals.length > 0
+      ? monthlyTotals.reduce((sum, m) => sum + m.amount, 0) / monthlyTotals.length
+      : null;
 
   const currentMonthTotal = bills
     .filter(
