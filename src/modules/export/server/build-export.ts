@@ -11,6 +11,8 @@ import {
 import type { SheetModel, WorkbookModel } from "../domain/workbook-model";
 import { safeFilenameSegment } from "../domain/workbook-model";
 import { getAccountExport, getFullHouseholdExport, getVehicleExport } from "./export-data";
+import { resolveLocale } from "@/i18n/resolve-locale";
+import type { AppLocale } from "@/i18n/routing";
 import type { ExportScope } from "./export-data";
 
 /**
@@ -19,11 +21,14 @@ import type { ExportScope } from "./export-data";
  * empty — a workbook of five blank tabs is worse than one populated one.
  */
 
-async function loadLabels(): Promise<ExportLabels> {
+async function loadLabels(locale: AppLocale): Promise<ExportLabels> {
+  // Passing `locale` explicitly is load-bearing. next-intl reads the locale
+  // from the `/[locale]/` path prefix, and this runs under /api where there
+  // isn't one — without it every export silently came out in English.
   const [t, tFuel, tUtil] = await Promise.all([
-    getTranslations("export"),
-    getTranslations("fuel.vehicles"),
-    getTranslations("utilities"),
+    getTranslations({ locale, namespace: "export" }),
+    getTranslations({ locale, namespace: "fuel.vehicles" }),
+    getTranslations({ locale, namespace: "utilities" }),
   ]);
 
   const columnKeys = [
@@ -83,7 +88,10 @@ export interface BuiltExport {
 
 /** Returns null when the scoped vehicle or account doesn't exist in this
  * household — the route turns that into a 404 rather than an empty file. */
-export async function buildExport(scope: ExportScope): Promise<BuiltExport | null> {
+export async function buildExport(
+  scope: ExportScope,
+  requestedLocale?: string | null
+): Promise<BuiltExport | null> {
   const data =
     scope.kind === "household"
       ? await getFullHouseholdExport()
@@ -93,7 +101,7 @@ export async function buildExport(scope: ExportScope): Promise<BuiltExport | nul
 
   if (!data) return null;
 
-  const labels = await loadLabels();
+  const labels = await loadLabels(resolveLocale(requestedLocale, data.viewerLocale));
   const currency = data.household.currency as "MKD" | "EUR";
 
   const candidates: SheetModel[] = [

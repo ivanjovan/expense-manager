@@ -53,7 +53,7 @@ export async function getFullHouseholdExport() {
     }),
   ]);
 
-  return { household, vehicles, fuelEntries, accounts, bills };
+  return { household, vehicles, fuelEntries, accounts, bills, viewerLocale: user.locale };
 }
 
 /** One vehicle's entries. Any member may export what they can already see. */
@@ -76,7 +76,7 @@ export async function getVehicleExport(vehicleId: string) {
     include: { createdBy: { select: { name: true } } },
   });
 
-  return { household, vehicles: [vehicle], fuelEntries, accounts: [], bills: [] };
+  return { household, vehicles: [vehicle], fuelEntries, accounts: [], bills: [], viewerLocale: user.locale };
 }
 
 /** One utility account's bills and readings. */
@@ -99,7 +99,7 @@ export async function getAccountExport(accountId: string) {
     include: BILL_INCLUDE,
   });
 
-  return { household, vehicles: [], fuelEntries: [], accounts: [account], bills };
+  return { household, vehicles: [], fuelEntries: [], accounts: [account], bills, viewerLocale: user.locale };
 }
 
 export { ForbiddenError };

@@ -41,13 +41,18 @@ function contentDisposition(filename: string): string {
 }
 
 export async function GET(request: Request) {
-  const scope = parseScope(new URL(request.url));
+  const url = new URL(request.url);
+  const scope = parseScope(url);
   if (!scope) {
     return errorResponse("invalid_scope", 400);
   }
 
   try {
-    const built = await buildExport(scope);
+    // The caller sends the locale it is currently displaying. This route has
+    // no `/[locale]/` prefix for next-intl to infer one from, and the locale
+    // switcher never persists, so nothing else knows what language the user
+    // is actually reading.
+    const built = await buildExport(scope, url.searchParams.get("locale"));
     if (!built) {
       return errorResponse("not_found", 404);
     }

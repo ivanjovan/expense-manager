@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/shared/components/ui/button";
 import { Download } from "lucide-react";
 
@@ -44,6 +44,7 @@ function filenameFrom(header: string | null, fallback: string): string {
 
 export function ExportButton({ scope, id, labelKey, variant = "outline", size = "sm", className }: ExportButtonProps) {
   const t = useTranslations("export");
+  const locale = useLocale();
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<"forbidden" | "failed" | null>(null);
 
@@ -51,7 +52,9 @@ export function ExportButton({ scope, id, labelKey, variant = "outline", size = 
     setBusy(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ scope });
+      // Sent explicitly: /api/export sits outside the localized route
+      // segment, so the server cannot infer the active language.
+      const params = new URLSearchParams({ scope, locale });
       if (id) params.set("id", id);
       const response = await fetch(`/api/export?${params}`);
 
