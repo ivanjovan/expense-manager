@@ -43,6 +43,11 @@ const FRACTIONAL_FIELDS = new Set([
   "currentReadingLow",
 ]);
 
+/** Money fields: parsed as amounts, not readings. Listed explicitly so a
+ * new one is a deliberate addition rather than something that silently
+ * falls through to string handling. */
+const AMOUNT_FIELDS = new Set(["totalAmount", "taxAmount", "previousDebt", "totalDue"]);
+
 const DATE_FIELDS = new Set(["date", "issueDate", "periodFrom", "periodTo", "dueDate"]);
 
 export const SYSTEM_INSTRUCTION = `You extract structured data from photographed receipts and utility bills.
@@ -56,6 +61,13 @@ Rules:
 - Documents may be in Macedonian or Serbian, in Cyrillic or Latin script.
 - Fuel receipts: a per-litre price typically has 3 decimals and is a small number; do not confuse it with a total.
 - Electricity bills: report high (VT / дневна / висока) and low (NT / ноќна / ниска) tariff meter readings separately when both are present.
+- Electricity bills often span two pages. Read them as ONE bill: meter readings usually sit on one page and the money breakdown on the other.
+- Money fields on an electricity bill, kept strictly separate:
+  * totalAmount = what THIS billing period costs, including tax. Do NOT include any debt carried over from an earlier bill.
+  * taxAmount = the tax (DDV/ДДВ/VAT) portion already contained in totalAmount.
+  * previousDebt = unpaid balance brought forward from previous bills (dolg/долг, претходно задолжување, "previous balance"). Omit it if the bill shows none.
+  * totalDue = the final figure printed on the payment slip, which normally equals totalAmount + previousDebt.
+  If the bill only prints a single grand total and a carried-over debt, report that grand total as totalDue and the difference as totalAmount only if the bill states it explicitly — otherwise omit totalAmount rather than calculating it yourself.
 - If the document is not a fuel receipt or an electricity bill, or you cannot tell, return documentType UNKNOWN.`;
 
 /** Value + confidence, matching the app's extraction contract. Values are
@@ -87,7 +99,7 @@ export function buildResponseSchema(): Schema {
       fuelType: field("Fuel grade as printed"),
       fuelPrice: field("Price per litre (small, often 3 decimals)"),
       liters: field("Litres dispensed"),
-      totalAmount: field("Total amount paid or billed"),
+      totalAmount: field("Fuel receipt: total paid. Electricity bill: THIS period's charge including tax, excluding carried-over debt"),
       currency: field("Currency: EUR or MKD"),
       receiptNumber: field("Receipt number"),
       supplierName: field("Electricity supplier name"),
@@ -98,6 +110,9 @@ export function buildResponseSchema(): Schema {
       dueDate: field("Payment due date, YYYY-MM-DD"),
       paymentReference: field("Payment reference number"),
       customerNumber: field("Customer or account number"),
+      taxAmount: field("Tax (VAT/DDV) portion already inside totalAmount"),
+      previousDebt: field("Unpaid balance carried over from earlier bills"),
+      totalDue: field("Final amount payable on the slip (period charge + previous debt)"),
       previousReadingHigh: field("Previous high-tariff meter reading"),
       currentReadingHigh: field("Current high-tariff meter reading"),
       previousReadingLow: field("Previous low-tariff meter reading"),
@@ -135,7 +150,7 @@ function toDocumentExtraction(raw: Record<string, unknown>): unknown {
       normalized = normalizeDate(String(value));
     } else if (key === "currency") {
       normalized = normalizeCurrency(String(value));
-    } else if (FRACTIONAL_FIELDS.has(key) || key === "totalAmount") {
+    } else if (FRACTIONAL_FIELDS.has(key) || AMOUNT_FIELDS.has(key)) {
       normalized = parseDecimal(value as string | number, {
         fractional: FRACTIONAL_FIELDS.has(key),
       });

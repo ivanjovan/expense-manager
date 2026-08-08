@@ -238,7 +238,13 @@
       "markPaid": "Mark paid",
       "markUnpaid": "Mark unpaid",
       "addedBy": "Added by {name}",
-      "filterPlaceholder": "Filter by invoice number or notes"
+      "filterPlaceholder": "Filter by invoice number or notes",
+      "taxAmount": "Tax included",
+      "taxAmountHint": "The tax portion already inside the amount above.",
+      "previousDebt": "Previous unpaid debt",
+      "previousDebtHint": "Carried over from an earlier bill. Recorded but never added to monthly totals — it already counted in the month it belongs to.",
+      "totalDueLabel": "Total to pay now:",
+      "totalDueHint": "(this period + previous debt)"
     },
     "status": {
       "PAID": "Paid",
@@ -285,7 +291,14 @@
       "fullTankQuestion": "Did you fill the tank completely?",
       "fullTankWhy": "Receipts don't say, and consumption figures depend on it — so we won't guess.",
       "fullTankYes": "Yes, full tank",
-      "fullTankNo": "No, partial fill"
+      "fullTankNo": "No, partial fill",
+      "subtitlePages": "Photograph all {count} pages, then read them together. Meter readings and charges are on different pages.",
+      "addPage": "Add page",
+      "readPages": "{count, plural, one {Read # page} other {Read # pages}}",
+      "pageAlt": "Page {number}",
+      "removePage": "Remove page {number}",
+      "onePageOnly": "Only one page was read. An electricity bill normally needs both — the charges and any carried-over debt are on the other page.",
+      "chargesDoNotReconcile": "The bill's own figures don't add up: this period plus previous debt doesn't match the total due. Check all three against the paper before saving."
     },
     "errors": {
       "unauthenticated": "Your session expired. Sign in again and retry.",
@@ -295,7 +308,8 @@
       "provider_not_configured": "Scanning isn't set up on this server yet.",
       "provider_failed": "Couldn't read the document. Try again, or enter the values manually.",
       "unreadable_document": "The image couldn't be read. Try a sharper, better-lit photo.",
-      "network": "Couldn't reach the server. Check your connection and try again."
+      "network": "Couldn't reach the server. Check your connection and try again.",
+      "too_many_pages": "Too many pages. Scan up to 4 at a time."
     },
     "notices": {
       "currencyMismatch": "This document is in {documentCurrency}, but your household records everything in {householdCurrency}. Saving is blocked because totals would be wrong. Enter it manually if the amount is genuinely in {householdCurrency}.",
@@ -318,7 +332,9 @@
       "previousReadingHigh": "previous high-tariff reading",
       "currentReadingHigh": "current high-tariff reading",
       "previousReadingLow": "previous low-tariff reading",
-      "currentReadingLow": "current low-tariff reading"
+      "currentReadingLow": "current low-tariff reading",
+      "taxAmount": "tax",
+      "previousDebt": "previous debt"
     }
   },
   "export": {
@@ -380,7 +396,10 @@
       "previousReading": "Previous reading",
       "currentReading": "Current reading",
       "consumption": "Consumption",
-      "meterRollover": "Meter rollover"
+      "meterRollover": "Meter rollover",
+      "taxAmount": "Tax included",
+      "previousDebt": "Previous unpaid debt",
+      "totalDue": "Total payable"
     },
     "values": {
       "yes": "Yes",

@@ -66,7 +66,22 @@ export const electricityBillExtractionSchema = z.object({
   periodFrom: extractedDate.optional(),
   periodTo: extractedDate.optional(),
   dueDate: extractedDate.optional(),
+  /** This period's charge including tax, excluding any carried-over debt.
+   * Maps to UtilityBill.amount, which every aggregate sums. */
   totalAmount: extractedNumber.optional(),
+  /** The tax portion already inside totalAmount. */
+  taxAmount: extractedNumber.optional(),
+  /** Unpaid balance brought forward from earlier bills. Recorded, never
+   * summed — see the note on UtilityBill.previousDebt. */
+  previousDebt: extractedNumber.optional(),
+  /**
+   * The final figure printed on the payment slip. Not stored: it is
+   * `totalAmount + previousDebt` by definition, so keeping it would let the
+   * two drift. Extracted anyway because that identity is a free
+   * cross-check — if the three don't reconcile, a digit was misread, and
+   * the review screen says so instead of saving a wrong number quietly.
+   */
+  totalDue: extractedNumber.optional(),
   currency: extractedCurrency.optional(),
   paymentReference: extractedString.optional(),
   customerNumber: extractedString.optional(),
@@ -101,6 +116,9 @@ export interface DocumentExtractionResult {
    * the mock provider can be labelled as invented rather than presented as
    * if it had been read off the document. */
   provider: string;
+  /** How many pages were read. Surfaced so the review screen can point out
+   * that a bill was scanned from one page when it usually needs two. */
+  pageCount: number;
 }
 
 /** Lives here rather than in the provider so client components can check for
@@ -115,6 +133,7 @@ export const API_ERROR_CODES = [
   "no_file",
   "unsupported_type",
   "file_too_large",
+  "too_many_pages",
   "provider_not_configured",
   "provider_failed",
   "unreadable_document",

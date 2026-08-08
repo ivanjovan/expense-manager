@@ -39,6 +39,9 @@ const FRACTIONAL_FIELDS = new Set([
   "currentReadingLow",
 ]);
 
+/** Money fields: parsed as amounts, not readings. */
+const AMOUNT_FIELDS = new Set(["totalAmount", "taxAmount", "previousDebt", "totalDue"]);
+
 const SYSTEM_PROMPT = `You extract structured data from photographed receipts and utility bills.
 
 Rules:
@@ -49,6 +52,13 @@ Rules:
 - Numbers use a decimal point. These documents commonly use a decimal comma and dotted thousands (1.234,56 means 1234.56).
 - Fuel receipts: a per-litre price typically has 3 decimals (1.729) and is a small number; do not confuse it with a total.
 - Electricity bills: report high (VT/дневна) and low (NT/ноќна) tariff meter readings separately when both are present.
+- Electricity bills often span two pages. Read them as ONE bill: meter readings usually sit on one page and the money breakdown on the other.
+- Money fields on an electricity bill, kept strictly separate:
+  * totalAmount = what THIS billing period costs, including tax. Do NOT include any debt carried over from an earlier bill.
+  * taxAmount = the tax (DDV/ДДВ/VAT) portion already contained in totalAmount.
+  * previousDebt = unpaid balance brought forward from previous bills (dolg/долг, претходно задолжување, "previous balance"). Omit it if the bill shows none.
+  * totalDue = the final figure printed on the payment slip, which normally equals totalAmount + previousDebt.
+  If the bill only prints a single grand total and a carried-over debt, report that grand total as totalDue and the difference as totalAmount only if the bill states it explicitly — otherwise omit totalAmount rather than calculating it yourself.
 - If the document is not a fuel receipt or an electricity bill, or you cannot tell, return documentType UNKNOWN.`;
 
 /** Anthropic's documented image ceiling is 2576px on the long edge; larger
@@ -94,6 +104,9 @@ function buildExtractionTool(): Anthropic.Tool {
         dueDate: field("Payment due date, YYYY-MM-DD", "string"),
         paymentReference: field("Payment reference number", "string"),
         customerNumber: field("Customer or account number", "string"),
+        taxAmount: field("Tax (VAT/DDV) portion already inside totalAmount", "number"),
+        previousDebt: field("Unpaid balance carried over from earlier bills", "number"),
+        totalDue: field("Final amount payable on the slip", "number"),
         previousReadingHigh: field("Previous high-tariff meter reading", "number"),
         currentReadingHigh: field("Current high-tariff meter reading", "number"),
         previousReadingLow: field("Previous low-tariff meter reading", "number"),
@@ -128,7 +141,7 @@ function toDocumentExtraction(raw: Record<string, unknown>): unknown {
       normalized = normalizeDate(String(value));
     } else if (key === "currency") {
       normalized = normalizeCurrency(String(value));
-    } else if (typeof value === "number" || FRACTIONAL_FIELDS.has(key) || key === "totalAmount") {
+    } else if (typeof value === "number" || FRACTIONAL_FIELDS.has(key) || AMOUNT_FIELDS.has(key)) {
       normalized = parseDecimal(value as string | number, {
         fractional: FRACTIONAL_FIELDS.has(key),
       });
@@ -159,9 +172,12 @@ export class ClaudeDocumentExtractionProvider implements DocumentExtractionProvi
   }
 
   async extract(
-    image: ImageInput,
+    pages: ImageInput[],
     expectedType?: Exclude<DocumentType, "UNKNOWN">
   ): Promise<DocumentExtraction> {
+    if (pages.length === 0) {
+      throw new DocumentExtractionError("unreadable_document", "No pages supplied");
+    }
     const hint = expectedType
       ? `The user started from the ${
           expectedType === "FUEL_RECEIPT" ? "fuel" : "electricity"
@@ -169,6 +185,11 @@ export class ClaudeDocumentExtractionProvider implements DocumentExtractionProvi
           expectedType === "FUEL_RECEIPT" ? "fuel receipt" : "electricity bill"
         } — but classify what you actually see, not what is expected.`
       : "Classify the document from its content.";
+
+    const pageNote =
+      pages.length > 1
+        ? `\n\nThis is ONE document photographed across ${pages.length} pages, in order. Combine them into a single extraction.`
+        : "";
 
     let response: Anthropic.Message;
     try {
@@ -182,16 +203,21 @@ export class ClaudeDocumentExtractionProvider implements DocumentExtractionProvi
           {
             role: "user",
             content: [
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  // Narrowed at the route against SUPPORTED_IMAGE_TYPES.
-                  media_type: image.mimeType as "image/jpeg" | "image/png" | "image/webp",
-                  data: image.data.toString("base64"),
+              ...pages.flatMap((page, index): Anthropic.ContentBlockParam[] => [
+                ...(pages.length > 1
+                  ? ([{ type: "text", text: `Page ${index + 1} of ${pages.length}:` }] as Anthropic.ContentBlockParam[])
+                  : []),
+                {
+                  type: "image",
+                  source: {
+                    type: "base64",
+                    // Narrowed at the route against SUPPORTED_IMAGE_TYPES.
+                    media_type: page.mimeType as "image/jpeg" | "image/png" | "image/webp",
+                    data: page.data.toString("base64"),
+                  },
                 },
-              },
-              { type: "text", text: `${hint}\n\nExtract the document's data.` },
+              ]),
+              { type: "text", text: `${hint}${pageNote}\n\nExtract the document's data.` },
             ],
           },
         ],

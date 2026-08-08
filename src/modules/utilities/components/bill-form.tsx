@@ -35,6 +35,8 @@ interface BillFormProps {
     issueDate: string | null;
     dueDate: string;
     amount: number;
+    taxAmount: number | null;
+    previousDebt: number | null;
     paymentDate: string | null;
     invoiceNumber: string | null;
     notes: string | null;
@@ -78,6 +80,8 @@ export function BillForm({
   const [issueDate, setIssueDate] = React.useState(defaultValues?.issueDate ?? "");
   const [dueDate, setDueDate] = React.useState(defaultValues?.dueDate ?? "");
   const [amount, setAmount] = React.useState(numText(defaultValues?.amount));
+  const [taxAmount, setTaxAmount] = React.useState(numText(defaultValues?.taxAmount));
+  const [previousDebt, setPreviousDebt] = React.useState(numText(defaultValues?.previousDebt));
   const [invoiceNumber, setInvoiceNumber] = React.useState(defaultValues?.invoiceNumber ?? "");
 
   const [previousReadingHigh, setPreviousReadingHigh] = React.useState(
@@ -94,7 +98,7 @@ export function BillForm({
   );
 
   const [scan, setScan] = React.useState<
-    (BillScanApplication & { provider: string; mismatch: boolean }) | null
+    (BillScanApplication & { provider: string; mismatch: boolean; pageCount: number }) | null
   >(null);
 
   const showScanner = scanEnabled && mode === "create";
@@ -105,12 +109,13 @@ export function BillForm({
         ...applyBillExtraction({ documentType: "ELECTRICITY_BILL" }, householdCurrency, tracksReadings),
         provider: result.provider,
         mismatch: true,
+        pageCount: result.pageCount,
       });
       return;
     }
 
     const applied = applyBillExtraction(result.extraction, householdCurrency, tracksReadings);
-    setScan({ ...applied, provider: result.provider, mismatch: result.mismatch });
+    setScan({ ...applied, provider: result.provider, mismatch: result.mismatch, pageCount: result.pageCount });
 
     const v = applied.values;
     if (v.periodFrom) setPeriodFrom(v.periodFrom);
@@ -118,6 +123,8 @@ export function BillForm({
     if (v.issueDate) setIssueDate(v.issueDate);
     if (v.dueDate) setDueDate(v.dueDate);
     if (v.amount !== undefined) setAmount(v.amount);
+    if (v.taxAmount !== undefined) setTaxAmount(v.taxAmount);
+    if (v.previousDebt !== undefined) setPreviousDebt(v.previousDebt);
     if (v.invoiceNumber) setInvoiceNumber(v.invoiceNumber);
     // The previous readings are pre-filled from the last bill, which is the
     // more reliable source — the document only overwrites them if it
@@ -134,6 +141,15 @@ export function BillForm({
     }
   }, [state, router, accountId]);
 
+  // Derived rather than stored: amount + previousDebt is the definition of
+  // the slip total, and keeping a third column would let the three drift.
+  const parsedAmount = Number(amount);
+  const parsedDebt = Number(previousDebt) || 0;
+  const totalDue =
+    amount.trim() !== "" && Number.isFinite(parsedAmount) && parsedDebt > 0
+      ? parsedAmount + parsedDebt
+      : null;
+
   const submitDisabled = isPending || (scan?.currencyMismatch ?? false);
 
   return (
@@ -143,6 +159,8 @@ export function BillForm({
           documentType="ELECTRICITY_BILL"
           onExtracted={handleExtracted}
           disabled={isPending}
+          // Readings on one page, charges and carried-over debt on the other.
+          expectedPages={2}
         />
       )}
 
@@ -155,6 +173,18 @@ export function BillForm({
             householdCurrency={householdCurrency}
             lowConfidenceFields={scan.lowConfidenceFields}
           />
+          {scan.chargesDoNotReconcile && (
+            // The document contradicts itself, so no value here can be
+            // trusted without a look at the paper.
+            <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {td("chargesDoNotReconcile")}
+            </p>
+          )}
+          {scan.pageCount === 1 && (
+            <p role="status" className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+              {td("onePageOnly")}
+            </p>
+          )}
           {scan.missingReadings && (
             // Said before the user reviews the rest, rather than as four
             // field errors after they press save.
@@ -253,6 +283,45 @@ export function BillForm({
             <FieldError message={fieldErrors?.amount} />
           </div>
           <div className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <Label htmlFor="taxAmount">{t("taxAmount")}</Label>
+              <FieldScanMark confidence={scan?.confidence.taxAmount} />
+            </div>
+            <Input
+              id="taxAmount"
+              name="taxAmount"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min={0}
+              value={taxAmount}
+              onChange={(e) => setTaxAmount(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">{t("taxAmountHint")}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <Label htmlFor="previousDebt">{t("previousDebt")}</Label>
+              <FieldScanMark confidence={scan?.confidence.previousDebt} />
+            </div>
+            <Input
+              id="previousDebt"
+              name="previousDebt"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min={0}
+              value={previousDebt}
+              onChange={(e) => setPreviousDebt(e.target.value)}
+            />
+            {/* Says out loud why this number does not move the charts —
+                otherwise it looks like the totals are simply wrong. */}
+            <p className="text-xs text-muted-foreground">{t("previousDebtHint")}</p>
+          </div>
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="paymentDate">{t("paymentDate")}</Label>
             <Input
               id="paymentDate"
@@ -262,6 +331,14 @@ export function BillForm({
             />
           </div>
         </div>
+
+        {totalDue !== null && (
+          <p className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm">
+            {t("totalDueLabel")}{" "}
+            <strong className="font-semibold">{totalDue.toFixed(2)}</strong>{" "}
+            <span className="text-muted-foreground">{t("totalDueHint")}</span>
+          </p>
+        )}
 
         {tracksReadings && (
           <div className="flex flex-col gap-3 rounded-2xl border border-border p-3 sm:p-4">

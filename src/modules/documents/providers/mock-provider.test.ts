@@ -4,7 +4,8 @@ import { DocumentExtractionError } from "./types";
 import { documentExtractionSchema } from "../schemas/extraction";
 import { applyBillExtraction, applyFuelExtraction } from "../domain/apply";
 
-const image = { data: Buffer.from("not-really-an-image"), mimeType: "image/jpeg" };
+const page = { data: Buffer.from("not-really-an-image"), mimeType: "image/jpeg" };
+const image = [page];
 const provider = new MockDocumentExtractionProvider();
 
 describe("MockDocumentExtractionProvider", () => {
@@ -24,14 +25,34 @@ describe("MockDocumentExtractionProvider", () => {
     expect(result.currentReadingLow?.value).toBeDefined();
   });
 
+  it("returns a charge breakdown that reconciles", async () => {
+    // totalDue must equal totalAmount + previousDebt, or the fixture would
+    // be teaching the review screen to trust an impossible bill.
+    const result = await provider.extract(image, "ELECTRICITY_BILL");
+    if (result.documentType !== "ELECTRICITY_BILL") throw new Error("wrong type");
+    const amount = result.totalAmount?.value ?? 0;
+    const debt = result.previousDebt?.value ?? 0;
+    expect(result.totalDue?.value).toBeCloseTo(amount + debt, 2);
+    expect(result.taxAmount?.value).toBeLessThan(amount);
+  });
+
   it("returns UNKNOWN with no type hint rather than guessing", async () => {
     const result = await provider.extract(image);
     expect(result.documentType).toBe("UNKNOWN");
   });
 
+  it("rejects a request with no pages", async () => {
+    await expect(provider.extract([])).rejects.toBeInstanceOf(DocumentExtractionError);
+  });
+
+  it("accepts a two-page bill", async () => {
+    const result = await provider.extract([page, page], "ELECTRICITY_BILL");
+    expect(result.documentType).toBe("ELECTRICITY_BILL");
+  });
+
   it("rejects an empty image", async () => {
     await expect(
-      provider.extract({ data: Buffer.alloc(0), mimeType: "image/jpeg" })
+      provider.extract([{ data: Buffer.alloc(0), mimeType: "image/jpeg" }])
     ).rejects.toBeInstanceOf(DocumentExtractionError);
   });
 

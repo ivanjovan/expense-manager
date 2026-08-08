@@ -19,12 +19,22 @@ export interface DocumentExtractionProvider {
   readonly name: string;
 
   /**
+   * Extracts one document that may span several pages.
+   *
+   * Pages arrive together, in order, as a single request rather than one
+   * call per page. An electricity bill splits its meter readings across one
+   * page and its charges — tax, and any debt carried over from an unpaid
+   * bill — across another, and those have to be reconciled against each
+   * other. Extracting pages separately would mean inventing merge rules for
+   * fields that appear on both, and would lose the cross-page arithmetic
+   * that catches a misread digit.
+   *
    * `expectedType` is a hint from the module the user started in, not a
    * constraint: a provider must still report what the document actually
    * looks like so a mismatch can be surfaced (§5).
    */
   extract(
-    image: ImageInput,
+    pages: ImageInput[],
     expectedType?: Exclude<DocumentType, "UNKNOWN">
   ): Promise<DocumentExtraction>;
 }

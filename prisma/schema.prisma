@@ -270,7 +270,19 @@ model UtilityBill {
   periodTo        DateTime  @db.Date
   issueDate       DateTime? @db.Date
   dueDate         DateTime  @db.Date
+  /// What this billing period cost, including tax. Never includes debt
+  /// carried over from an earlier bill — that would count the earlier bill
+  /// twice, once in its own month and again in the month it was settled.
+  /// Every aggregate and chart sums this column.
   amount          Decimal   @db.Decimal(12, 2)
+  /// The tax portion already contained in `amount`, when the bill states it.
+  /// Informational: never added to anything, or it would double-count.
+  taxAmount       Decimal?  @db.Decimal(12, 2)
+  /// Unpaid balance carried forward from previous bills, as printed on the
+  /// payment slip. Recorded so the slip total can be reproduced and so an
+  /// arrears situation is visible — deliberately excluded from every
+  /// spending aggregate. Total payable = amount + previousDebt.
+  previousDebt    Decimal?  @db.Decimal(12, 2)
   currency        Currency
   paymentDate     DateTime? @db.Date
   invoiceNumber   String?

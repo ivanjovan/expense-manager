@@ -4,6 +4,8 @@ import {
   extractDocument,
   isSupportedImageType,
   MAX_IMAGE_BYTES,
+  MAX_PAGES,
+  MAX_TOTAL_BYTES,
   DocumentExtractionError,
 } from "@/modules/documents/server/extract";
 import type { ApiErrorCode, DocumentType } from "@/modules/documents/schemas/extraction";
@@ -45,17 +47,24 @@ export async function POST(request: Request) {
     return errorResponse("no_file", 400);
   }
 
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) {
+  // `getAll` because an electricity bill is photographed across two pages
+  // and sent as one document — see DocumentExtractionProvider.extract.
+  const files = formData.getAll("file").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length === 0) {
     return errorResponse("no_file", 400);
   }
-
-  // Validate before reading the body into memory.
-  if (!isSupportedImageType(file.type)) {
-    return errorResponse("unsupported_type", 415);
+  if (files.length > MAX_PAGES) {
+    return errorResponse("too_many_pages", 413);
   }
-  if (file.size > MAX_IMAGE_BYTES) {
-    return errorResponse("file_too_large", 413);
+
+  // Validate everything before reading any of it into memory.
+  for (const file of files) {
+    if (!isSupportedImageType(file.type)) {
+      return errorResponse("unsupported_type", 415);
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      return errorResponse("file_too_large", 413);
+    }
   }
 
   const rawType = formData.get("documentType");
@@ -64,15 +73,24 @@ export async function POST(request: Request) {
       ? (rawType as Exclude<DocumentType, "UNKNOWN">)
       : undefined;
 
-  const data = Buffer.from(await file.arrayBuffer());
-  // Re-check post-read: `file.size` is client-declared metadata, the byte
-  // length is the real thing.
-  if (data.byteLength > MAX_IMAGE_BYTES) {
-    return errorResponse("file_too_large", 413);
+  const pages = [];
+  let totalBytes = 0;
+  for (const file of files) {
+    const data = Buffer.from(await file.arrayBuffer());
+    // Re-check post-read: `file.size` is client-declared metadata, the byte
+    // length is the real thing.
+    if (data.byteLength > MAX_IMAGE_BYTES) {
+      return errorResponse("file_too_large", 413);
+    }
+    totalBytes += data.byteLength;
+    if (totalBytes > MAX_TOTAL_BYTES) {
+      return errorResponse("file_too_large", 413);
+    }
+    pages.push({ data, mimeType: file.type });
   }
 
   try {
-    const result = await extractDocument({ data, mimeType: file.type }, expectedType);
+    const result = await extractDocument(pages, expectedType);
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof DocumentExtractionError) {

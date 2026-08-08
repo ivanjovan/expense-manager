@@ -49,6 +49,9 @@ const ELECTRICITY_FIXTURE = {
   periodTo: { value: "2026-07-31", confidence: 0.9, source: "ai" },
   dueDate: { value: "2026-08-20", confidence: 0.93, source: "ai" },
   totalAmount: { value: 3187.0, confidence: 0.96, source: "ai" },
+  taxAmount: { value: 486.15, confidence: 0.91, source: "ai" },
+  previousDebt: { value: 1240.0, confidence: 0.87, source: "ai" },
+  totalDue: { value: 4427.0, confidence: 0.95, source: "ai" },
   currency: { value: "MKD", confidence: 0.99, source: "ai" },
   customerNumber: { value: "1100294817", confidence: 0.84, source: "ai" },
   previousReadingHigh: { value: 24180, confidence: 0.89, source: "ai" },
@@ -63,10 +66,10 @@ export class MockDocumentExtractionProvider implements DocumentExtractionProvide
   readonly name = MOCK_PROVIDER_NAME;
 
   async extract(
-    image: ImageInput,
+    pages: ImageInput[],
     expectedType?: Exclude<DocumentType, "UNKNOWN">
   ): Promise<DocumentExtraction> {
-    if (image.data.byteLength === 0) {
+    if (pages.length === 0 || pages.some((page) => page.data.byteLength === 0)) {
       throw new DocumentExtractionError("unreadable_document", "Empty image");
     }
 

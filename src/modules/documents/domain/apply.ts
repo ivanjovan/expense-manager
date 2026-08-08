@@ -36,6 +36,8 @@ export const SCAN_FIELD_KEYS = [
   "dueDate",
   "amount",
   "invoiceNumber",
+  "taxAmount",
+  "previousDebt",
   "previousReadingHigh",
   "currentReadingHigh",
   "previousReadingLow",
@@ -203,6 +205,8 @@ export interface BillScanValues {
   issueDate?: string;
   dueDate?: string;
   amount?: string;
+  taxAmount?: string;
+  previousDebt?: string;
   invoiceNumber?: string;
   previousReadingHigh?: string;
   currentReadingHigh?: string;
@@ -217,7 +221,25 @@ export interface BillScanApplication extends ScanApplication<BillScanValues> {
    * field errors after the user has already reviewed everything else.
    */
   missingReadings: boolean;
+  /**
+   * The slip total the document printed, when it printed one. Not saved —
+   * it is amount + previousDebt by definition — but shown so the user can
+   * check the figure they will actually pay against the paper.
+   */
+  totalDue: number | null;
+  /**
+   * Set when the document's own three figures don't add up:
+   * totalDue !== amount + previousDebt beyond rounding. That means a digit
+   * was misread somewhere, and which one is not knowable from here — so it
+   * is surfaced for a human rather than silently repaired.
+   */
+  chargesDoNotReconcile: boolean;
 }
+
+/** Two minor units, to absorb the rounding a printed bill does. Tighter
+ * than the fuel tolerance because these are stated totals, not the product
+ * of a pump's own rounding. */
+const RECONCILE_TOLERANCE = 0.02;
 
 const READING_FIELDS = [
   "previousReadingHigh",
@@ -239,6 +261,8 @@ export function applyBillExtraction(
   record(confidence, lowConfidenceFields, "issueDate", extraction.issueDate);
   record(confidence, lowConfidenceFields, "dueDate", extraction.dueDate);
   record(confidence, lowConfidenceFields, "amount", extraction.totalAmount);
+  record(confidence, lowConfidenceFields, "taxAmount", extraction.taxAmount);
+  record(confidence, lowConfidenceFields, "previousDebt", extraction.previousDebt);
   record(confidence, lowConfidenceFields, "invoiceNumber", extraction.invoiceNumber);
   for (const field of READING_FIELDS) {
     record(confidence, lowConfidenceFields, field, extraction[field]);
@@ -250,6 +274,8 @@ export function applyBillExtraction(
     issueDate: extraction.issueDate?.value,
     dueDate: extraction.dueDate?.value,
     amount: numText(extraction.totalAmount?.value, 2),
+    taxAmount: numText(extraction.taxAmount?.value, 2),
+    previousDebt: numText(extraction.previousDebt?.value, 2),
     invoiceNumber: extraction.invoiceNumber?.value,
     previousReadingHigh: numText(extraction.previousReadingHigh?.value, 3),
     currentReadingHigh: numText(extraction.currentReadingHigh?.value, 3),
@@ -260,6 +286,17 @@ export function applyBillExtraction(
   const currency = extraction.currency?.value ?? null;
   const readingsFound = READING_FIELDS.filter((f) => values[f] !== undefined).length;
 
+  // The bill states three related numbers; if they disagree, one was
+  // misread. Only checkable when the document actually printed the slip
+  // total — most of the value of extracting a field we never store.
+  const amount = extraction.totalAmount?.value;
+  const debt = extraction.previousDebt?.value ?? 0;
+  const totalDue = extraction.totalDue?.value ?? null;
+  const chargesDoNotReconcile =
+    totalDue !== null &&
+    amount !== undefined &&
+    Math.abs(totalDue - (amount + debt)) > RECONCILE_TOLERANCE;
+
   return {
     values,
     confidence,
@@ -267,6 +304,8 @@ export function applyBillExtraction(
     currency,
     currencyMismatch: currency !== null && currency !== householdCurrency,
     missingReadings: tracksReadings && readingsFound < READING_FIELDS.length,
+    totalDue,
+    chargesDoNotReconcile,
   };
 }
 

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components/ui/button";
+import { X } from "lucide-react";
 import {
   toScanErrorCode,
   type DocumentExtractionResult,
@@ -14,13 +15,19 @@ import {
  * Capture -> extract. Mobile-first: this is used standing at a petrol pump,
  * so the camera is the primary action and everything else is secondary.
  *
- * Owns capture, client-side downscaling and the API call. It deliberately
- * does *not* know what a fuel receipt is — it hands the result to whichever
- * form embedded it, which is what lets the same component serve both modules.
+ * Handles multi-page documents because an electricity bill is one: the
+ * meter readings sit on one sheet and the charges — tax, and any debt
+ * carried over from an unpaid bill — on another. Pages are collected first
+ * and sent together in a single request, so the model reconciles them
+ * itself rather than us inventing merge rules.
+ *
+ * Owns capture, downscaling and the API call. It deliberately does *not*
+ * know what a fuel receipt is — it hands the result to whichever form
+ * embedded it, which is what lets one component serve both modules.
  */
 
-/** Anthropic downscales above roughly this on the long edge anyway, so
- * sending more costs upload time on a phone connection and buys nothing. */
+/** Anthropic and Gemini both downscale above roughly this on the long edge,
+ * so sending more costs upload time on a phone connection and buys nothing. */
 const MAX_EDGE_PX = 1568;
 const JPEG_QUALITY = 0.85;
 const SUPPORTED = ["image/jpeg", "image/png", "image/webp"];
@@ -30,10 +37,22 @@ const MAX_BYTES = 10 * 1024 * 1024;
 
 type Status = "idle" | "preparing" | "uploading";
 
+interface CapturedPage {
+  blob: Blob;
+  type: string;
+  url: string;
+}
+
 interface DocumentScannerProps {
   documentType: Exclude<DocumentType, "UNKNOWN">;
   onExtracted: (result: DocumentExtractionResult) => void;
   disabled?: boolean;
+  /**
+   * How many pages this kind of document normally has. Only drives the
+   * guidance text and the ceiling — a user with a one-page bill can still
+   * read it with one, and nothing blocks on reaching this number.
+   */
+  expectedPages?: number;
 }
 
 /**
@@ -41,7 +60,7 @@ interface DocumentScannerProps {
  *
  * `imageOrientation: "from-image"` is load-bearing: without it a photo taken
  * in portrait arrives rotated, because the EXIF orientation flag is dropped
- * when the bitmap is drawn to a canvas. A sideways receipt extracts badly.
+ * when the bitmap is drawn to a canvas. A sideways bill extracts badly.
  *
  * Any failure falls back to the original file — a slower upload beats a
  * capture the user can't submit at all.
@@ -78,54 +97,80 @@ async function prepareImage(file: File): Promise<{ blob: Blob; type: string }> {
   }
 }
 
-export function DocumentScanner({ documentType, onExtracted, disabled }: DocumentScannerProps) {
+export function DocumentScanner({
+  documentType,
+  onExtracted,
+  disabled,
+  expectedPages = 1,
+}: DocumentScannerProps) {
   const t = useTranslations("documents.scan");
   const te = useTranslations("documents.errors");
 
   const [status, setStatus] = React.useState<Status>("idle");
   const [errorCode, setErrorCode] = React.useState<ScanErrorCode | null>(null);
-  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+  const [pages, setPages] = React.useState<CapturedPage[]>([]);
 
   const cameraInputRef = React.useRef<HTMLInputElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Object URLs leak until revoked; the ref survives re-renders so the
-  // previous preview is released when a new capture replaces it.
-  const previewUrlRef = React.useRef<string | null>(null);
-  const setPreview = React.useCallback((url: string | null) => {
-    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-    previewUrlRef.current = url;
-    setPreviewUrl(url);
-  }, []);
+  // Object URLs leak until revoked. The ref mirrors state so the unmount
+  // cleanup sees the current list without re-running on every capture —
+  // written in an effect, never during render.
+  const pagesRef = React.useRef<CapturedPage[]>([]);
+  React.useEffect(() => {
+    pagesRef.current = pages;
+  }, [pages]);
   React.useEffect(() => {
     return () => {
-      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+      for (const page of pagesRef.current) URL.revokeObjectURL(page.url);
     };
   }, []);
 
-  async function handleFile(file: File) {
+  async function addPages(files: File[]) {
     setErrorCode(null);
     setStatus("preparing");
-    setPreview(URL.createObjectURL(file));
-
-    const { blob, type } = await prepareImage(file);
-
-    if (!SUPPORTED.includes(type)) {
+    try {
+      const prepared: CapturedPage[] = [];
+      for (const file of files) {
+        if (pages.length + prepared.length >= 4) break;
+        const { blob, type } = await prepareImage(file);
+        if (!SUPPORTED.includes(type)) {
+          setErrorCode("unsupported_type");
+          continue;
+        }
+        if (blob.size > MAX_BYTES) {
+          setErrorCode("file_too_large");
+          continue;
+        }
+        prepared.push({ blob, type, url: URL.createObjectURL(blob) });
+      }
+      if (prepared.length > 0) setPages((current) => [...current, ...prepared]);
+    } finally {
       setStatus("idle");
-      setErrorCode("unsupported_type");
-      return;
     }
-    if (blob.size > MAX_BYTES) {
-      setStatus("idle");
-      setErrorCode("file_too_large");
-      return;
-    }
+  }
+
+  function removePage(index: number) {
+    setPages((current) => {
+      const page = current[index];
+      if (page) URL.revokeObjectURL(page.url);
+      return current.filter((_, i) => i !== index);
+    });
+  }
+
+  async function handleRead() {
+    if (pages.length === 0) return;
+    setErrorCode(null);
+    setStatus("uploading");
 
     const body = new FormData();
-    body.append("file", new File([blob], "capture.jpg", { type }));
+    // Same field name repeated, read with getAll on the server — pages stay
+    // in capture order, which is what the page numbering in the prompt means.
+    pages.forEach((page, index) => {
+      body.append("file", new File([page.blob], `page-${index + 1}.jpg`, { type: page.type }));
+    });
     body.append("documentType", documentType);
 
-    setStatus("uploading");
     try {
       const response = await fetch("/api/documents/extract", { method: "POST", body });
       if (!response.ok) {
@@ -143,44 +188,65 @@ export function DocumentScanner({ documentType, onExtracted, disabled }: Documen
   }
 
   function onInputChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files ?? []);
     // Reset so re-picking the same file fires change again.
     event.target.value = "";
-    if (file) void handleFile(file);
+    if (files.length > 0) void addPages(files);
   }
 
   const busy = status !== "idle" || disabled;
+  const multiPage = expectedPages > 1;
+  const canRead = pages.length > 0 && !busy;
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/30 p-3 sm:p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-medium">{t("title")}</p>
-          <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        {previewUrl && (
-          // A blob: URL for an in-memory capture that is never uploaded as a
-          // static asset — next/image cannot optimize it and would only add
-          // a proxy hop, so a plain img is correct here.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={previewUrl}
-            alt={t("previewAlt")}
-            className="h-16 w-16 shrink-0 rounded border border-border object-cover"
-          />
-        )}
+      <div className="min-w-0">
+        <p className="text-sm font-medium">{t("title")}</p>
+        <p className="text-xs text-muted-foreground">
+          {multiPage ? t("subtitlePages", { count: expectedPages }) : t("subtitle")}
+        </p>
       </div>
 
-      {/* Both share the row evenly rather than sizing to their text, so
-          neither becomes a small target on a phone at a petrol pump. */}
+      {pages.length > 0 && (
+        <ul className="flex flex-wrap gap-2">
+          {pages.map((page, index) => (
+            <li key={page.url} className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element -- blob:
+                  URL for an in-memory capture; next/image cannot optimize it. */}
+              <img
+                src={page.url}
+                alt={t("pageAlt", { number: index + 1 })}
+                className="h-20 w-16 rounded border border-border object-cover"
+              />
+              <span className="absolute bottom-0 left-0 rounded-br rounded-tl bg-background/80 px-1 text-[10px] font-medium">
+                {index + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => removePage(index)}
+                aria-label={t("removePage", { number: index + 1 })}
+                className="absolute -right-1.5 -top-1.5 rounded-full border border-border bg-background p-0.5 text-muted-foreground hover:text-foreground"
+              >
+                <X className="size-3" aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
+          variant={pages.length > 0 ? "outline" : "default"}
           onClick={() => cameraInputRef.current?.click()}
           disabled={busy}
           className="flex-1 basis-32"
         >
-          {status === "uploading" ? t("reading") : status === "preparing" ? t("preparing") : t("takePhoto")}
+          {status === "preparing"
+            ? t("preparing")
+            : pages.length === 0
+              ? t("takePhoto")
+              : t("addPage")}
         </Button>
         <Button
           type="button"
@@ -192,6 +258,12 @@ export function DocumentScanner({ documentType, onExtracted, disabled }: Documen
           {t("chooseFile")}
         </Button>
       </div>
+
+      {pages.length > 0 && (
+        <Button type="button" onClick={handleRead} disabled={!canRead} className="w-full">
+          {status === "uploading" ? t("reading") : t("readPages", { count: pages.length })}
+        </Button>
+      )}
 
       {/* Two inputs rather than one: `capture` opens the camera directly on
           mobile, which is the common case, but leaves no way to pick an
@@ -208,6 +280,7 @@ export function DocumentScanner({ documentType, onExtracted, disabled }: Documen
         ref={fileInputRef}
         type="file"
         accept={SUPPORTED.join(",")}
+        multiple={multiPage}
         className="hidden"
         onChange={onInputChange}
       />

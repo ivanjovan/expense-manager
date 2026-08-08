@@ -32,6 +32,18 @@ export const utilityBillSchema = z
     amount: z.coerce
       .number({ message: "validation.required" })
       .positive({ message: "validation.required" }),
+    /** Both optional and both informational. An empty input posts "", which
+     * z.coerce.number turns into 0 — so blanks are mapped to undefined
+     * first, keeping "not stated on the bill" distinct from "stated as
+     * zero". */
+    taxAmount: z.preprocess(
+      (v) => (v === "" || v === undefined ? undefined : v),
+      z.coerce.number().min(0).optional()
+    ),
+    previousDebt: z.preprocess(
+      (v) => (v === "" || v === undefined ? undefined : v),
+      z.coerce.number().min(0).optional()
+    ),
     paymentDate: optionalCalendarDate,
     invoiceNumber: z.string().max(100).optional().or(z.literal("")),
     notes: z.string().max(2000).optional().or(z.literal("")),

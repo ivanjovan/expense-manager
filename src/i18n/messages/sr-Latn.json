@@ -238,7 +238,13 @@
       "markPaid": "Označi kao plaćeno",
       "markUnpaid": "Označi kao neplaćeno",
       "addedBy": "Dodao/la {name}",
-      "filterPlaceholder": "Filtriraj po broju računa ili napomeni"
+      "filterPlaceholder": "Filtriraj po broju računa ili napomeni",
+      "taxAmount": "Uključen porez",
+      "taxAmountHint": "Deo poreza koji je već sadržan u iznosu iznad.",
+      "previousDebt": "Prethodni neplaćeni dug",
+      "previousDebtHint": "Prenet sa ranijeg računa. Beleži se, ali se nikad ne dodaje u mesečne zbirove — već je uračunat u mesecu kojem pripada.",
+      "totalDueLabel": "Ukupno za plaćanje sada:",
+      "totalDueHint": "(ovaj period + prethodni dug)"
     },
     "status": {
       "PAID": "Plaćeno",
@@ -285,7 +291,14 @@
       "fullTankQuestion": "Da li si napunio rezervoar do vrha?",
       "fullTankWhy": "Na računu ne piše, a potrošnja zavisi od toga — zato ne nagađamo.",
       "fullTankYes": "Da, pun rezervoar",
-      "fullTankNo": "Ne, delimično"
+      "fullTankNo": "Ne, delimično",
+      "subtitlePages": "Slikaj svih {count} strana, pa ih pročitaj zajedno. Stanja brojila i troškovi su na različitim stranama.",
+      "addPage": "Dodaj stranu",
+      "readPages": "{count, plural, one {Pročitaj # stranu} few {Pročitaj # strane} other {Pročitaj # strana}}",
+      "pageAlt": "Strana {number}",
+      "removePage": "Ukloni stranu {number}",
+      "onePageOnly": "Pročitana je samo jedna strana. Račun za struju obično zahteva obe — troškovi i prethodni dug su na drugoj strani.",
+      "chargesDoNotReconcile": "Iznosi na računu se ne slažu: ovaj period plus prethodni dug ne odgovara ukupnom dugovanju. Proveri sva tri sa papirom pre čuvanja."
     },
     "errors": {
       "unauthenticated": "Sesija je istekla. Prijavi se ponovo i pokušaj opet.",
@@ -295,7 +308,8 @@
       "provider_not_configured": "Skeniranje još nije podešeno na ovom serveru.",
       "provider_failed": "Dokument nije mogao da se pročita. Pokušaj ponovo ili unesi vrednosti ručno.",
       "unreadable_document": "Slika nije mogla da se pročita. Pokušaj sa oštrijom i bolje osvetljenom slikom.",
-      "network": "Server nije dostupan. Proveri vezu i pokušaj ponovo."
+      "network": "Server nije dostupan. Proveri vezu i pokušaj ponovo.",
+      "too_many_pages": "Previše strana. Skeniraj najviše 4 odjednom."
     },
     "notices": {
       "currencyMismatch": "Ovaj dokument je u {documentCurrency}, a tvoje domaćinstvo vodi sve u {householdCurrency}. Čuvanje je blokirano jer bi zbirovi bili pogrešni. Unesi ručno ako je iznos zaista u {householdCurrency}.",
@@ -318,7 +332,9 @@
       "previousReadingHigh": "prethodno stanje više tarife",
       "currentReadingHigh": "trenutno stanje više tarife",
       "previousReadingLow": "prethodno stanje niže tarife",
-      "currentReadingLow": "trenutno stanje niže tarife"
+      "currentReadingLow": "trenutno stanje niže tarife",
+      "taxAmount": "porez",
+      "previousDebt": "prethodni dug"
     }
   },
   "export": {
@@ -380,7 +396,10 @@
       "previousReading": "Prethodno stanje",
       "currentReading": "Trenutno stanje",
       "consumption": "Potrošnja",
-      "meterRollover": "Prelaz brojila"
+      "meterRollover": "Prelaz brojila",
+      "taxAmount": "Uključen porez",
+      "previousDebt": "Prethodni neplaćeni dug",
+      "totalDue": "Ukupno za plaćanje"
     },
     "values": {
       "yes": "Da",

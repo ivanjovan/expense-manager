@@ -226,6 +226,8 @@ const bill: UtilityBillRow = {
   issueDate: new Date("2026-08-03T00:00:00Z"),
   dueDate: new Date("2026-08-20T00:00:00Z"),
   amount: 3187,
+  taxAmount: 486.15,
+  previousDebt: null,
   currency: "MKD",
   paymentDate: null,
   invoiceNumber: "INV-1",
@@ -248,6 +250,25 @@ describe("buildUtilityBillsSheet", () => {
       labels
     );
     expect(paid.rows[0].paymentStatus).toBe("Paid");
+  });
+
+  it("exports the charge breakdown and derives the payable total", () => {
+    // A backup that dropped the carried-over debt would lose the reason a
+    // slip total didn't match the period charge.
+    const withDebt = { ...bill, previousDebt: 1240 };
+    const row = buildUtilityBillsSheet([withDebt], [account], labels).rows[0];
+    expect(row.amount).toBe(3187);
+    expect(row.taxAmount).toBe(486.15);
+    expect(row.previousDebt).toBe(1240);
+    expect(row.totalDue).toBe(4427);
+  });
+
+  it("leaves the payable total blank when there is no debt", () => {
+    // Otherwise the column would just duplicate `amount` and invite someone
+    // to sum the wrong one.
+    const row = buildUtilityBillsSheet([bill], [account], labels).rows[0];
+    expect(row.previousDebt).toBeNull();
+    expect(row.totalDue).toBeNull();
   });
 
   it("resolves the account name", () => {

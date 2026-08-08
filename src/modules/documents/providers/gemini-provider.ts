@@ -43,9 +43,12 @@ export class GeminiDocumentExtractionProvider implements DocumentExtractionProvi
   }
 
   async extract(
-    image: ImageInput,
+    pages: ImageInput[],
     expectedType?: Exclude<DocumentType, "UNKNOWN">
   ): Promise<DocumentExtraction> {
+    if (pages.length === 0) {
+      throw new DocumentExtractionError("unreadable_document", "No pages supplied");
+    }
     const hint = expectedType
       ? `The user started from the ${
           expectedType === "FUEL_RECEIPT" ? "fuel" : "electricity"
@@ -53,6 +56,14 @@ export class GeminiDocumentExtractionProvider implements DocumentExtractionProvi
           expectedType === "FUEL_RECEIPT" ? "fuel receipt" : "electricity bill"
         } — but classify what you actually see, not what is expected.`
       : "Classify the document from its content.";
+
+    // Numbering the pages matters: an electricity bill's charges and its
+    // meter readings sit on different sheets, and the model has to treat
+    // them as one document rather than two unrelated images.
+    const pageNote =
+      pages.length > 1
+        ? `\n\nThis is ONE document photographed across ${pages.length} pages, in order. Combine them into a single extraction.`
+        : "";
 
     let text: string | undefined;
     let lastDescription = "";
@@ -71,13 +82,18 @@ export class GeminiDocumentExtractionProvider implements DocumentExtractionProvi
           {
             role: "user",
             parts: [
-              {
-                inlineData: {
-                  mimeType: image.mimeType,
-                  data: image.data.toString("base64"),
+              ...pages.flatMap((page, index) => [
+                ...(pages.length > 1
+                  ? [{ text: `Page ${index + 1} of ${pages.length}:` }]
+                  : []),
+                {
+                  inlineData: {
+                    mimeType: page.mimeType,
+                    data: page.data.toString("base64"),
+                  },
                 },
-              },
-              { text: `${hint}\n\nExtract the document's data.` },
+              ]),
+              { text: `${hint}${pageNote}\n\nExtract the document's data.` },
             ],
           },
         ],

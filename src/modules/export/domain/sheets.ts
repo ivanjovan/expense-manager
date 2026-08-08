@@ -113,6 +113,8 @@ export interface UtilityBillRow {
   issueDate: Date | null;
   dueDate: Date;
   amount: unknown;
+  taxAmount: unknown;
+  previousDebt: unknown;
   currency: string;
   paymentDate: Date | null;
   invoiceNumber: string | null;
@@ -300,6 +302,9 @@ export function buildUtilityBillsSheet(
       ["issueDate", "date", 12],
       ["dueDate", "date", 12],
       ["amount", "money", 14],
+      ["taxAmount", "money", 14],
+      ["previousDebt", "money", 16],
+      ["totalDue", "money", 14],
       ["paymentStatus", "text", 10],
       ["paymentDate", "date", 12],
       ["invoiceNumber", "text", 18],
@@ -314,6 +319,15 @@ export function buildUtilityBillsSheet(
       issueDate: b.issueDate,
       dueDate: b.dueDate,
       amount: toNumber(b.amount),
+      taxAmount: toNumber(b.taxAmount),
+      previousDebt: toNumber(b.previousDebt),
+      // Derived here rather than stored, same as in the form: it is
+      // amount + previousDebt by definition. Blank when there is no debt,
+      // so a column of totals is not silently duplicating `amount`.
+      totalDue:
+        toNumber(b.previousDebt) === null
+          ? null
+          : (toNumber(b.amount) ?? 0) + (toNumber(b.previousDebt) ?? 0),
       // Deliberately only paid/unpaid: "overdue" is relative to the moment
       // the file is opened, and a spreadsheet has no way to stay current.
       paymentStatus: b.paymentDate ? labels.values.paid : labels.values.unpaid,

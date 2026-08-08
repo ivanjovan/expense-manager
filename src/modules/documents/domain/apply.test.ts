@@ -175,6 +175,82 @@ describe("applyBillExtraction", () => {
     expect(result.lowConfidenceFields).toEqual(["currentReadingLow"]);
   });
 
+  it("keeps this period's charge separate from carried-over debt", () => {
+    // The whole point: amount drives every chart, debt drives none. If debt
+    // leaked into amount, an unpaid bill would be counted in its own month
+    // and again in the month it was settled.
+    const result = applyBillExtraction(
+      bill({ totalAmount: f(3187), previousDebt: f(1240), totalDue: f(4427), taxAmount: f(486.15) }),
+      "MKD",
+      false
+    );
+    expect(result.values.amount).toBe("3187");
+    expect(result.values.previousDebt).toBe("1240");
+    expect(result.values.taxAmount).toBe("486.15");
+    expect(result.totalDue).toBe(4427);
+    expect(result.chargesDoNotReconcile).toBe(false);
+  });
+
+  it("flags a bill whose own figures do not add up", () => {
+    // 3187 + 1240 = 4427, not 5000 — a digit was misread somewhere, and
+    // which one is not knowable from here.
+    const result = applyBillExtraction(
+      bill({ totalAmount: f(3187), previousDebt: f(1240), totalDue: f(5000) }),
+      "MKD",
+      false
+    );
+    expect(result.chargesDoNotReconcile).toBe(true);
+  });
+
+  it("tolerates rounding in the printed total", () => {
+    const result = applyBillExtraction(
+      bill({ totalAmount: f(3187.005), previousDebt: f(1240), totalDue: f(4427.01) }),
+      "MKD",
+      false
+    );
+    expect(result.chargesDoNotReconcile).toBe(false);
+  });
+
+  it("treats an absent previous debt as zero when reconciling", () => {
+    const result = applyBillExtraction(
+      bill({ totalAmount: f(3187), totalDue: f(3187) }),
+      "MKD",
+      false
+    );
+    expect(result.chargesDoNotReconcile).toBe(false);
+    expect(result.values.previousDebt).toBeUndefined();
+  });
+
+  it("cannot reconcile without a printed total, and does not pretend to", () => {
+    const result = applyBillExtraction(
+      bill({ totalAmount: f(3187), previousDebt: f(1240) }),
+      "MKD",
+      false
+    );
+    expect(result.totalDue).toBeNull();
+    expect(result.chargesDoNotReconcile).toBe(false);
+  });
+
+  it("does not reconcile when the period charge was not read", () => {
+    // Only totalDue and debt present: amount is unknown, so there is
+    // nothing to contradict.
+    const result = applyBillExtraction(
+      bill({ previousDebt: f(1240), totalDue: f(4427) }),
+      "MKD",
+      false
+    );
+    expect(result.chargesDoNotReconcile).toBe(false);
+  });
+
+  it("flags low confidence on the charge fields too", () => {
+    const result = applyBillExtraction(
+      bill({ previousDebt: f(1240, 0.4), taxAmount: f(486, 0.5) }),
+      "MKD",
+      false
+    );
+    expect(result.lowConfidenceFields).toEqual(["taxAmount", "previousDebt"]);
+  });
+
   it("produces an empty application from a bare extraction", () => {
     const result = applyBillExtraction(bill({}), "MKD", true);
     expect(result.values.amount).toBeUndefined();

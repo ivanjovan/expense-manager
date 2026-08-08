@@ -131,6 +131,10 @@ export async function createUtilityBill(
         issueDate: input.issueDate,
         dueDate: input.dueDate,
         amount: input.amount,
+        // Recorded but never summed anywhere — see the note on
+        // UtilityBill.previousDebt in the Prisma schema.
+        taxAmount: input.taxAmount ?? null,
+        previousDebt: input.previousDebt ?? null,
         currency: household.currency,
         paymentDate: input.paymentDate,
         invoiceNumber: cleanOptional(input.invoiceNumber),
@@ -197,6 +201,8 @@ export async function updateUtilityBill(
           issueDate: input.issueDate,
           dueDate: input.dueDate,
           amount: input.amount,
+          taxAmount: input.taxAmount ?? null,
+          previousDebt: input.previousDebt ?? null,
           paymentDate: input.paymentDate,
           invoiceNumber: cleanOptional(input.invoiceNumber),
           notes: cleanOptional(input.notes),

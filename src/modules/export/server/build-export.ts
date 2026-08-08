@@ -39,6 +39,7 @@ async function loadLabels(locale: AppLocale): Promise<ExportLabels> {
     "utilityType", "provider", "accountNumber", "meterNumber", "tracksReadings",
     "unit", "account", "periodFrom", "periodTo", "issueDate", "dueDate", "amount",
     "paymentStatus", "paymentDate", "invoiceNumber", "band", "previousReading",
+    "taxAmount", "previousDebt", "totalDue",
     "currentReading", "consumption", "meterRollover",
   ] as const;
 

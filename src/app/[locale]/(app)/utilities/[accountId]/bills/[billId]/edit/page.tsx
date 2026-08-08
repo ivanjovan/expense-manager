@@ -44,6 +44,8 @@ export default async function EditUtilityBillPage({
               issueDate: bill.issueDate ? bill.issueDate.toISOString().slice(0, 10) : null,
               dueDate: bill.dueDate.toISOString().slice(0, 10),
               amount: Number(bill.amount),
+              taxAmount: bill.taxAmount === null ? null : Number(bill.taxAmount),
+              previousDebt: bill.previousDebt === null ? null : Number(bill.previousDebt),
               paymentDate: bill.paymentDate ? bill.paymentDate.toISOString().slice(0, 10) : null,
               invoiceNumber: bill.invoiceNumber,
               notes: bill.notes,
