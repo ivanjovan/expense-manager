@@ -14,7 +14,9 @@
 
 export type SupportedCurrency = "MKD" | "EUR";
 
-const CURRENCY_SYMBOLS: Record<SupportedCurrency, string> = {
+/** Exported so the Excel export renders the same symbol the screen does —
+ * see numberFormatFor in export/domain/workbook-model.ts. */
+export const CURRENCY_SYMBOLS: Record<SupportedCurrency, string> = {
   MKD: "ден",
   EUR: "€",
 };

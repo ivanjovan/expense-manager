@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CURRENCY_SYMBOLS } from "@/shared/lib/money";
 import {
   buildFuelEntriesSheet,
   buildMeterReadingsSheet,
@@ -92,9 +93,10 @@ describe("workbook-model helpers", () => {
     expect(safeSheetName("Bills [2026]/Q1")).toBe("Bills 2026 Q1");
   });
 
-  it("formats money in the household currency", () => {
-    expect(numberFormatFor("money", "MKD")).toContain("MKD");
-    expect(numberFormatFor("money", "EUR")).toContain("€");
+  it("formats money with the same symbol the app renders on screen", () => {
+    // "ден", not "MKD" — the two used to disagree between screen and export.
+    expect(numberFormatFor("money", "MKD")).toContain(CURRENCY_SYMBOLS.MKD);
+    expect(numberFormatFor("money", "EUR")).toContain(CURRENCY_SYMBOLS.EUR);
   });
 
   it("gives text cells no number format", () => {

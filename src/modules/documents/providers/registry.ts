@@ -61,7 +61,10 @@ export function getDocumentExtractionProvider(): DocumentExtractionProvider {
     }
 
     case "claude": {
-      cached = new ClaudeDocumentExtractionProvider(requireApiKey());
+      cached = new ClaudeDocumentExtractionProvider(
+        requireApiKey(),
+        env.DOCUMENT_EXTRACTION_MODEL
+      );
       return cached;
     }
 

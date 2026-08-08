@@ -25,7 +25,10 @@ import { parseDecimal, normalizeCurrency, normalizeConfidence, normalizeDate } f
  * a build error, which is what keeps the API key off the browser (§19).
  */
 
-const MODEL = "claude-opus-5";
+/** Overridable via DOCUMENT_EXTRACTION_MODEL, for the same reason the Gemini
+ * provider is: model IDs get retired on a schedule this repo can't track, and
+ * that should be an env change rather than a deploy. */
+export const DEFAULT_MODEL = "claude-opus-5";
 
 /** Fields that are inherently fractional — see parseDecimal's `fractional`
  * option. A fuel price misread by 1000x would corrupt the consumption
@@ -179,9 +182,11 @@ function toDocumentExtraction(raw: Record<string, unknown>): unknown {
 export class ClaudeDocumentExtractionProvider implements DocumentExtractionProvider {
   readonly name = "claude";
   private readonly client: Anthropic;
+  private readonly model: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, model: string = DEFAULT_MODEL) {
     this.client = new Anthropic({ apiKey });
+    this.model = model;
   }
 
   async extract(
@@ -207,7 +212,7 @@ export class ClaudeDocumentExtractionProvider implements DocumentExtractionProvi
     let response: Anthropic.Message;
     try {
       response = await this.client.messages.create({
-        model: MODEL,
+        model: this.model,
         max_tokens: 4096,
         system: SYSTEM_PROMPT,
         tools: [buildExtractionTool()],

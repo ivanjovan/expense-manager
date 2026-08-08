@@ -15,6 +15,8 @@
  * the same model.
  */
 
+import { CURRENCY_SYMBOLS, type SupportedCurrency } from "@/shared/lib/money";
+
 export type CellType = "text" | "number" | "decimal" | "money" | "date" | "boolean";
 
 export interface ColumnModel {
@@ -43,14 +45,17 @@ export interface WorkbookModel {
  * household currency so the exported file reads in the household's own
  * terms rather than a bare number (§8).
  *
- * MKD has no Excel-native currency token, so the code is quoted as a
- * literal suffix — the same problem `Intl.NumberFormat` has with MKD, which
- * §8.1 already documents.
+ * Neither currency has an Excel-native token that renders the way the app
+ * does, so the symbol is quoted as a literal suffix — the same problem
+ * `Intl.NumberFormat` has with MKD, which §8.1 already documents. The symbol
+ * itself comes from the shared registry rather than being spelled again
+ * here: the export used to print "MKD" where every screen in the app printed
+ * "ден", so the same amount read differently depending on where you saw it.
  */
-export function numberFormatFor(type: CellType, currency: "MKD" | "EUR"): string | undefined {
+export function numberFormatFor(type: CellType, currency: SupportedCurrency): string | undefined {
   switch (type) {
     case "money":
-      return currency === "EUR" ? '#,##0.00\\ "€"' : '#,##0.00\\ "MKD"';
+      return `#,##0.00\\ "${CURRENCY_SYMBOLS[currency]}"`;
     case "decimal":
       return "#,##0.000";
     case "number":
