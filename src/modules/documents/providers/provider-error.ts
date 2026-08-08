@@ -83,3 +83,19 @@ export function providerErrorHint(description: string): string | undefined {
   }
   return undefined;
 }
+
+/**
+ * Whether a failure is worth retrying.
+ *
+ * Free-tier Gemini returns 503 UNAVAILABLE ("high demand") often enough
+ * that a single attempt is not a reliable feature — observed on the very
+ * second call during testing. 429 and 5xx are the provider's problem and
+ * usually clear in a second; a 4xx is ours and never will, so retrying it
+ * would just make a wrong model name take three times as long to report.
+ */
+export function isRetryableStatus(description: string): boolean {
+  const match = description.match(/^\[(\d{3})]/);
+  if (!match) return false;
+  const status = Number(match[1]);
+  return status === 429 || (status >= 500 && status < 600);
+}

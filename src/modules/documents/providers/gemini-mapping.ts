@@ -17,10 +17,18 @@ import { parseDecimal, normalizeCurrency, normalizeConfidence, normalizeDate } f
 
 /**
  * Overridable because model IDs are retired on a schedule this repo can't
- * track. If Google renames or sunsets the default, that becomes an env var
- * change rather than a deploy.
+ * track — gemini-2.5-flash, the previous default, began returning
+ * "no longer available to new users" and took the whole feature down with
+ * it. A rename is now an env var change rather than a deploy.
+ *
+ * Chosen by measurement, not reputation: against a synthetic MKD fuel
+ * receipt this read price, litres, total, currency and date correctly,
+ * while gemini-3.5-flash silently omitted price and litres. Set
+ * DOCUMENT_EXTRACTION_MODEL to "gemini-flash-latest" to track Google's
+ * current flash automatically and never hit a retirement again — at the
+ * cost of the model changing under you without notice.
  */
-export const DEFAULT_MODEL = "gemini-2.5-flash";
+export const DEFAULT_MODEL = "gemini-3.6-flash";
 
 /** Fields where a lone separator with three trailing digits means decimals,
  * not thousands — see parseDecimal's `fractional` option. Mirrors the

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describeProviderError, providerErrorHint, redactSecrets } from "./provider-error";
+import { describeProviderError, isRetryableStatus, providerErrorHint, redactSecrets } from "./provider-error";
 
 /**
  * Redaction is the security-relevant half of this module: Google's client
@@ -101,5 +101,26 @@ describe("providerErrorHint", () => {
 
   it("returns nothing for an unrecognized failure", () => {
     expect(providerErrorHint("[500] internal error")).toBeUndefined();
+  });
+});
+
+describe("isRetryableStatus", () => {
+  it("retries the transient provider failures", () => {
+    // 503 "high demand" showed up on the second live call during testing.
+    expect(isRetryableStatus("[503] This model is currently experiencing high demand")).toBe(true);
+    expect(isRetryableStatus("[429] Resource exhausted")).toBe(true);
+    expect(isRetryableStatus("[500] internal")).toBe(true);
+  });
+
+  it("does not retry our own mistakes", () => {
+    // A wrong model name will never succeed; retrying only delays the report.
+    expect(isRetryableStatus("[404] model not found")).toBe(false);
+    expect(isRetryableStatus("[400] API key not valid")).toBe(false);
+    expect(isRetryableStatus("[403] permission denied")).toBe(false);
+  });
+
+  it("does not retry when there is no status to judge", () => {
+    expect(isRetryableStatus("network down")).toBe(false);
+    expect(isRetryableStatus("")).toBe(false);
   });
 });

@@ -12,7 +12,7 @@ import {
   buildResponseSchema,
   parseGeminiExtraction,
 } from "./gemini-mapping";
-import { describeProviderError, providerErrorHint } from "./provider-error";
+import { describeProviderError, isRetryableStatus, providerErrorHint } from "./provider-error";
 
 /**
  * Gemini vision extraction provider.
@@ -27,6 +27,10 @@ import { describeProviderError, providerErrorHint } from "./provider-error";
  *
  * `server-only` keeps the key out of the browser bundle at build time.
  */
+
+/** Attempts in total, not retries after the first. */
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 700;
 
 export class GeminiDocumentExtractionProvider implements DocumentExtractionProvider {
   readonly name = "gemini";
@@ -51,7 +55,16 @@ export class GeminiDocumentExtractionProvider implements DocumentExtractionProvi
       : "Classify the document from its content.";
 
     let text: string | undefined;
-    try {
+    let lastDescription = "";
+
+    // Bounded deliberately: someone is standing at a pump waiting for this,
+    // so a couple of quick attempts beats either failing instantly on a
+    // blip or hanging while we retry optimistically.
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      if (attempt > 0) {
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * attempt));
+      }
+      try {
       const response = await this.client.models.generateContent({
         model: this.model,
         contents: [
@@ -87,18 +100,23 @@ export class GeminiDocumentExtractionProvider implements DocumentExtractionProvi
         );
       }
       text = response.text;
-    } catch (cause) {
-      if (cause instanceof DocumentExtractionError) throw cause;
-      // Carries a redacted description so the failure is diagnosable from
-      // the logs. Excludes the request body and the image (§19), and
-      // scrubs the API key the SDK echoes in the request URL.
-      const description = describeProviderError(cause);
-      const hint = providerErrorHint(description);
-      throw new DocumentExtractionError(
-        "provider_failed",
-        `Gemini request failed (model ${this.model}): ${description}${hint ? ` — ${hint}` : ""}`,
-        cause
-      );
+      break;
+      } catch (cause) {
+        if (cause instanceof DocumentExtractionError) throw cause;
+        // Carries a redacted description so the failure is diagnosable from
+        // the logs. Excludes the request body and the image (§19), and
+        // scrubs the API key the SDK echoes in the request URL.
+        lastDescription = describeProviderError(cause);
+        const retryable = isRetryableStatus(lastDescription) && attempt < MAX_ATTEMPTS - 1;
+        if (!retryable) {
+          const hint = providerErrorHint(lastDescription);
+          throw new DocumentExtractionError(
+            "provider_failed",
+            `Gemini request failed (model ${this.model}): ${lastDescription}${hint ? ` — ${hint}` : ""}`,
+            cause
+          );
+        }
+      }
     }
 
     if (!text) {
