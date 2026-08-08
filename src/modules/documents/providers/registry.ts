@@ -16,8 +16,14 @@ import { DocumentExtractionError, type DocumentExtractionProvider } from "./type
 
 let cached: DocumentExtractionProvider | null = null;
 
-function requireApiKey(): string {
-  const apiKey = env.DOCUMENT_EXTRACTION_API_KEY;
+/**
+ * `alias` lets a provider accept the variable name its own ecosystem uses,
+ * so a key provisioned under the vendor's conventional name works without
+ * being duplicated into a second variable. The generic name still wins, so
+ * an explicit choice always beats an inherited one.
+ */
+function requireApiKey(alias?: string): string {
+  const apiKey = env.DOCUMENT_EXTRACTION_API_KEY ?? alias;
   if (!apiKey) {
     throw new DocumentExtractionError(
       "provider_not_configured",
@@ -31,6 +37,9 @@ function requireApiKey(): string {
  * when this is false rather than showing a button that always fails. */
 export function isDocumentExtractionConfigured(): boolean {
   if (env.DOCUMENT_EXTRACTION_PROVIDER === "mock") return true;
+  if (env.DOCUMENT_EXTRACTION_PROVIDER === "gemini") {
+    return Boolean(env.DOCUMENT_EXTRACTION_API_KEY ?? env.GOOGLE_GENERATIVE_AI_API_KEY);
+  }
   return Boolean(env.DOCUMENT_EXTRACTION_API_KEY);
 }
 
@@ -44,7 +53,10 @@ export function getDocumentExtractionProvider(): DocumentExtractionProvider {
       return cached;
 
     case "gemini": {
-      cached = new GeminiDocumentExtractionProvider(requireApiKey(), env.DOCUMENT_EXTRACTION_MODEL);
+      cached = new GeminiDocumentExtractionProvider(
+        requireApiKey(env.GOOGLE_GENERATIVE_AI_API_KEY),
+        env.DOCUMENT_EXTRACTION_MODEL
+      );
       return cached;
     }
 

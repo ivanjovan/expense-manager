@@ -24,6 +24,11 @@ const envSchema = z.object({
   // result it produces as sample data.
   DOCUMENT_EXTRACTION_PROVIDER: z.enum(["gemini", "claude", "mock"]).default("mock"),
   DOCUMENT_EXTRACTION_API_KEY: z.string().optional(),
+  /** Google's conventional variable name, accepted as an alias so a key
+   * provisioned under it (or injected by a Google/Vercel integration) works
+   * without being copied to a second variable. Only consulted by the Gemini
+   * provider; DOCUMENT_EXTRACTION_API_KEY wins if both are set. */
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
   /** Overrides the provider's default model. Model IDs get retired on a
    * schedule this repo can't track, so that becomes an env change rather
    * than a deploy. */
