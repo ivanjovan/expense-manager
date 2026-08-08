@@ -37,12 +37,59 @@ if [ -z "${BACKUP_PASSPHRASE:-}" ]; then
   echo "error: BACKUP_PASSPHRASE is required — refusing to write an unencrypted dump" >&2
   exit 1
 fi
+# Prisma connection strings carry query parameters libpq has never heard of,
+# and it rejects the whole URI rather than ignoring them — `?schema=public`
+# alone fails with "invalid URI query parameter". Since the same variable is
+# shared with Prisma, strip its parameters here instead of asking for a
+# second, hand-edited copy of the same credential.
+strip_prisma_params() {
+  local url="$1" base query kept="" pair
+  case "$url" in
+    *\?*) base="${url%%\?*}"; query="${url#*\?}" ;;
+    *) printf '%s' "$url"; return ;;
+  esac
+  local pairs=()
+  IFS='&' read -ra pairs <<<"$query"
+  for pair in "${pairs[@]}"; do
+    [ -n "$pair" ] || continue
+    case "${pair%%=*}" in
+      schema|connection_limit|pool_timeout|pgbouncer|sslaccept| \
+      socket_timeout|statement_cache_size) continue ;;
+    esac
+    kept="${kept:+${kept}&}${pair}"
+  done
+  printf '%s%s' "$base" "${kept:+?${kept}}"
+}
+CONNECTION="$(strip_prisma_params "$CONNECTION")"
+
 case "$CONNECTION" in
   *-pooler.*)
     echo "warning: this looks like a pooled connection; a dump taken through" >&2
     echo "         PgBouncer can be inconsistent. Prefer DIRECT_DATABASE_URL." >&2
     ;;
 esac
+
+# pg_dump refuses to dump a server newer than itself, and most machines
+# either lack the client entirely or carry whatever version the distro
+# shipped. Docker gives a pinned, new-enough client without installing
+# anything system-wide. The CI job installs a real client from PGDG and
+# never reaches this branch.
+PG_DUMP_IMAGE="${PG_DUMP_IMAGE:-postgres:17-alpine}"
+run_pg_dump() {
+  if command -v pg_dump >/dev/null 2>&1; then
+    pg_dump --format=custom --no-owner --no-privileges "$CONNECTION"
+  elif command -v docker >/dev/null 2>&1; then
+    # The URL is passed by name, not by value, so the credentials stay out
+    # of the host's process list.
+    # --network host so the container resolves hosts exactly as the shell
+    # does; without it a localhost URL would point at the container itself.
+    PGURL="$CONNECTION" docker run --rm -i --network host -e PGURL "$PG_DUMP_IMAGE" \
+      sh -c 'pg_dump --format=custom --no-owner --no-privileges "$PGURL"'
+  else
+    echo "error: neither pg_dump nor docker is available" >&2
+    return 1
+  fi
+}
 
 mkdir -p "$OUT_DIR"
 TIMESTAMP="$(date -u +%Y%m%d-%H%M%SZ)"
@@ -70,7 +117,7 @@ echo "Dumping database to ${OUT_FILE} ..."
 # The dump is piped straight into gpg: it never exists unencrypted on disk.
 # pipefail is set, so a pg_dump failure fails the whole command rather than
 # leaving a small, valid-looking encrypted file containing nothing.
-pg_dump --format=custom --no-owner --no-privileges "$CONNECTION" \
+run_pg_dump \
   | gpg --batch --yes --symmetric --cipher-algo AES256 \
         --passphrase-fd 3 --output "$OUT_FILE" 3<<<"$BACKUP_PASSPHRASE"
 

@@ -17,57 +17,133 @@ There are three layers, and they cover different failures.
 Only the middle layer survives losing the database provider, and only the
 last is readable without any of this software.
 
-## Nightly dump — one-time setup
+## How the Google Drive part actually works
 
-`.github/workflows/backup.yml` runs at 02:15 UTC and can be triggered by
-hand from the Actions tab. It needs four repository secrets.
+There is one idea here, and the rest is plumbing:
 
-### 1. `DIRECT_DATABASE_URL`
+> A script cannot log in to Google. So you log in **once, in your own
+> browser**, and Google hands back a *refresh token*. `rclone` stores that
+> token in a config file. From then on, any machine holding that file can
+> write to your Drive as you — no browser, no password.
 
-Your Neon connection string with the **direct** host — that is, the one
-*without* `-pooler` in the hostname. `pg_dump` holds a long-lived snapshot,
-which PgBouncer's transaction pooling breaks. The same variable is used for
-migrations.
+So the work splits in two, and they are independent:
 
-### 2. `BACKUP_PASSPHRASE`
+1. **Create the token** — done once, on your own machine, in a browser
+   (§ Step 2 below). Unavoidable; nothing can do this for you.
+2. **Decide what runs the script on a schedule** — your machine, or GitHub
+   Actions. Both use the same token from step 1.
 
-Any long random string, e.g. `openssl rand -base64 32`.
+A Google **service account will not work here**, which is the usual dead
+end. Service accounts have no Drive storage of their own, so uploading into
+a folder shared with one fails with `storageQuotaExceeded` on a personal
+(`@gmail.com`) account — that path only works with a Workspace Shared
+Drive. Logging in as yourself also means *you* own the resulting files,
+which is what you want if this repo ever disappears.
 
-**Store it somewhere that is not this repo, not the database, and not
-Google Drive.** A password manager is right. An encrypted backup whose
-passphrase was only ever kept next to the backup is not encrypted, and one
-whose passphrase is lost is not a backup.
+## Step 1 — prove the dump works, before involving Drive
 
-### 3 & 4. `RCLONE_CONFIG_BASE64` and `RCLONE_REMOTE`
-
-A Google **service account will not work here.** Service accounts have no
-Drive storage of their own, so uploading into a folder shared with one
-fails with `storageQuotaExceeded` on a personal (`@gmail.com`) account.
-That path only works with a Workspace Shared Drive. Authenticate as
-yourself instead, so the files are owned by you:
+No system packages are required: the script uses `pg_dump` if it is
+installed and otherwise runs a pinned one via Docker.
 
 ```bash
-# On your own machine, where a browser can open:
-rclone config
-#   n) new remote
-#   name> gdrive
-#   Storage> drive
-#   client_id / client_secret> (blank is fine)
-#   scope> 1  (full access)  — or 3 (drive.file) to limit rclone to files
-#                              it created, which is the safer choice here
-#   Edit advanced config> n
-#   Use web browser to authenticate> y
-
-# Verify it works, then encode the whole config:
-rclone lsd gdrive:
-base64 -w0 ~/.config/rclone/rclone.conf
+export DIRECT_DATABASE_URL="postgresql://..."   # direct host, not -pooler
+export BACKUP_PASSPHRASE="$(openssl rand -base64 32)"   # then save it, see below
+npm run db:backup:remote
 ```
 
-Paste that string as `RCLONE_CONFIG_BASE64`, and set `RCLONE_REMOTE` to the
-destination folder, e.g. `gdrive:expense-manager-backups`.
+You should get a file in `backups/`. If you do, the hard part is done —
+everything after this is a file copy.
 
-The config file contains a refresh token — treat it as a credential.
-Revoke it from your Google account's third-party access page if it leaks.
+The connection string is the **direct** Neon host, i.e. the one *without*
+`-pooler` in the hostname. `pg_dump` holds a long-lived snapshot, which
+PgBouncer's transaction pooling breaks. It is the same value migrations
+use, and its Prisma-only query parameters (`?schema=public`, etc.) are
+stripped automatically — libpq rejects the URL outright otherwise.
+
+**Save that passphrase somewhere that is not this repo, not the database,
+and not Google Drive.** A password manager is right. An encrypted backup
+whose passphrase was only ever kept next to the backup is not encrypted,
+and one whose passphrase is lost is not a backup.
+
+## Step 2 — connect rclone to your Drive
+
+```bash
+rclone config
+```
+
+Answer as follows — everything not listed can take its default:
+
+| Prompt | Answer |
+|---|---|
+| `e/n/d/r/c/s/q>` | `n` (new remote) |
+| `name>` | `gdrive` |
+| `Storage>` | `drive` |
+| `client_id>` / `client_secret>` | blank |
+| `scope>` | **`3`** — `drive.file`, limits rclone to files it created |
+| `service_account_file>` | blank — see the warning above |
+| `Edit advanced config?` | `n` |
+| `Use web browser to authenticate?` | `y` |
+
+The browser step opens `localhost:53682`. On WSL that works from the
+Windows browser, since WSL2 shares localhost — if it does not open by
+itself, copy the printed URL across manually.
+
+Then verify, and create the destination folder:
+
+```bash
+rclone lsd gdrive:                              # lists your Drive folders
+rclone mkdir gdrive:expense-manager-backups
+rclone copy backups gdrive:expense-manager-backups --include "*.dump.gpg" -P
+rclone lsl gdrive:expense-manager-backups       # confirm it arrived
+```
+
+At this point you have working backups to Google Drive. What remains is
+only making it happen without you.
+
+The config file (`~/.config/rclone/rclone.conf`) now contains the refresh
+token — treat it as a credential. Revoke it from your Google account's
+third-party access page if it leaks.
+
+## Step 3 — run it on a schedule
+
+Pick one.
+
+### Option A — your machine (works today)
+
+No repository permissions needed. Add a cron entry:
+
+```bash
+crontab -e
+```
+
+```cron
+15 2 * * * cd ~/dev/expense-manager && DIRECT_DATABASE_URL="postgresql://..." BACKUP_PASSPHRASE="..." ./scripts/backup-remote.sh >> /tmp/backup.log 2>&1 && rclone copy backups gdrive:expense-manager-backups --include "*.dump.gpg" >> /tmp/backup.log 2>&1
+```
+
+The obvious limitation: it only runs when the machine is on. Fine as a
+starting point, and better than the alternative of waiting.
+
+### Option B — GitHub Actions (survives your laptop)
+
+`.github/workflows/backup.yml` runs at 02:15 UTC and can be triggered by
+hand from the Actions tab. **It cannot be committed with the current token
+— pushing `.github/` needs a PAT with `workflow` scope**, the same blocker
+as `ci.yml`. Add the file through the GitHub web UI, or use a token with
+that scope.
+
+It needs four repository secrets (Settings → Secrets and variables →
+Actions):
+
+| Secret | Value |
+|---|---|
+| `DIRECT_DATABASE_URL` | from step 1 |
+| `BACKUP_PASSPHRASE` | from step 1 |
+| `RCLONE_CONFIG_BASE64` | `base64 -w0 ~/.config/rclone/rclone.conf` |
+| `RCLONE_REMOTE` | `gdrive:expense-manager-backups` |
+
+Then run it once from the Actions tab rather than waiting for 02:15 — a
+schedule you have never triggered by hand is a schedule you have not
+tested.
 
 ## Restoring
 
@@ -97,16 +173,15 @@ substantially. A backup you have never restored is a guess.
 90 days of nightly dumps, pruned after a successful upload — a failed
 backup never deletes the last good one.
 
-## Running it by hand
+## What the script refuses to do
 
-```bash
-export DIRECT_DATABASE_URL="postgresql://..."   # direct host, not -pooler
-export BACKUP_PASSPHRASE="..."
-./scripts/backup-remote.sh
-```
+`scripts/backup-remote.sh` writes to `backups/`, which is gitignored. It
+fails loudly rather than producing something that merely looks like a
+backup:
 
-Writes to `backups/`, which is gitignored. The script refuses to run
-without a passphrase rather than quietly writing plaintext, and fails if
-the dump comes out implausibly small — an unreachable database otherwise
-produces a small, valid-looking file that only reveals itself at restore
-time.
+- no passphrase → refuses to run, rather than quietly writing plaintext;
+- dump under 1KB → treated as failed, because an unreachable database still
+  produces a small, well-formed encrypted file that only reveals itself at
+  restore time;
+- any non-zero exit → the partial file is deleted, since `gpg` has usually
+  written a few bytes by the time `pg_dump` fails.
